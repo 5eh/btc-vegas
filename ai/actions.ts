@@ -123,6 +123,7 @@ export async function generateReservationPrice(props: {
   const { object: reservation } = await generateObject({
     model: geminiFlashModel,
     prompt: `Generate price for the following reservation \n\n ${JSON.stringify(props, null, 2)}`,
+    // Add function to convert BTC price to USD
     schema: z.object({
       totalPriceInUSD: z
         .number()

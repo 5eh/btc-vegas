@@ -16,6 +16,8 @@
 - Change Flight prompting into Blockchain donation mechanism
 - Integrate on chain logic to handle connect wallet and donation gateway
 - Update logic: Change prompt context from open web search into the Database specific list
+- app/(chat)/api/chat/route.ts: Change prompt system from Flight function into Organization
+- ai/actions.ts: Change functions to relate to charity organization
 
 ## Database:
 - Change PostGres URL into Pocketbase
