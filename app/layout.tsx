@@ -7,8 +7,8 @@ import { ThemeProvider } from "@/components/custom/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gemini.vercel.ai"),
-  title: "Next.js Gemini Chatbot",
+  metadataBase: new URL("https://charity.ai"),
+  title: "Bitcoin Charity Searches",
   description: "Next.js chatbot template using the AI SDK and Gemini.",
 };
 
