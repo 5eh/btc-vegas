@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 
 import { Navbar } from "@/components/custom/navbar";
 import { ThemeProvider } from "@/components/custom/theme-provider";
+import { Footer } from "@/components/ui/footer";
 
 import "./globals.css";
 
@@ -28,7 +29,8 @@ export default async function RootLayout({
         >
           <Toaster position="top-center" />
           <Navbar />
-          {children}
+          <main className=" max-w-6xl mx-auto ">{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

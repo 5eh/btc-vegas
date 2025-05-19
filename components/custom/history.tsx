@@ -115,14 +115,14 @@ export const History = ({ user }: { user: User | undefined }) => {
 
           <div className="text-sm flex flex-row items-center justify-between">
             <div className="flex flex-row gap-2">
-              <div className="dark:text-zinc-300">History</div>
-
-              <div className="dark:text-zinc-400 text-zinc-500">
-                {history === undefined ? "loading" : history.length} chats
+              <div className="dark:text-zinc-300">
+                Previous Charity Searches
               </div>
             </div>
           </div>
-
+          <div className="dark:text-zinc-400 text-zinc-500">
+            {history === undefined ? "loading" : history.length} chats
+          </div>
           <div className="mt-10 flex flex-col">
             {user && (
               <Button

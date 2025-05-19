@@ -20,28 +20,19 @@ export const Overview = () => {
           <MessageIcon />
         </p>
         <p>
-          This is an open source Chatbot template powered by the Google Gemini
-          model built with Next.js and the AI SDK by Vercel. It uses the{" "}
-          <code className="rounded-sm bg-muted-foreground/15 px-1.5 py-0.5">
-            streamText
+          <code className="text-primary rounded-none bg-muted-foreground/15 px-1.5 py-0.5">
+            Fund The World
           </code>{" "}
-          function in the server and the{" "}
-          <code className="rounded-sm bg-muted-foreground/15 px-1.5 py-0.5">
-            useChat
-          </code>{" "}
-          hook on the client to create a seamless chat experience.
+          is an open blockchain initiative focused on enabling charities to
+          further expose social issues and raise funds.
         </p>
         <p>
           {" "}
-          You can learn more about the AI SDK by visiting the{" "}
-          <Link
-            className="text-blue-500 dark:text-blue-400"
-            href="https://sdk.vercel.ai/docs"
-            target="_blank"
-          >
-            Docs
-          </Link>
-          .
+          You can find charities that follow your believes below. Type{" "}
+          <code className="text-primary rounded-none bg-muted-foreground/15 px-1.5 py-0.5">
+            Donate
+          </code>{" "}
+          to make a finacial contribution to any charity on this platform.
         </p>
       </div>
     </motion.div>

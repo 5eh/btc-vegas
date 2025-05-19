@@ -24,25 +24,32 @@ export const Navbar = async () => {
           <History user={session?.user} />
           <div className="flex flex-row gap-2 items-center">
             <Image
-              src="/images/gemini-logo.png"
-              height={20}
-              width={20}
+              src="/images/icon.svg"
+              height={30}
+              width={30}
               alt="gemini logo"
             />
-            <div className="text-zinc-500">
-              <SlashIcon size={16} />
-            </div>
-            <div className="text-sm dark:text-zinc-300 truncate w-28 md:w-fit">
-              Next.js Gemini Chatbot
-            </div>
+            <div className="text-zinc-500">|</div>
+            <Link href="/">
+              <div className="text-sm dark:text-zinc-300 truncate w-28 md:w-fit">
+                Fund The World
+              </div>
+            </Link>
           </div>
         </div>
 
+        <div className="flex gap-4 px-4">
+          <Link href={"/all"}>
+            <button className="px-4 py-2 rounded-full text-black dark:text-white blur-sm hover:blur-0  border border-[#F7931A] transition hover:ease-in-out hover:border hover:border-[#F7931A]">
+              All Organizations
+            </button>
+          </Link>
+        </div>
         {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className="py-1.5 px-2 h-fit font-normal"
+                className="px-4 py-2 rounded-full text-black dark:text-white blur-sm hover:blur-0 border border-[#F7931A] transition hover:ease-in-out bg-transparent"
                 variant="secondary"
               >
                 {session.user?.email}
