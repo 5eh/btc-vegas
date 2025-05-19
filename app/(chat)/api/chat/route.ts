@@ -3,10 +3,9 @@ import { z } from "zod";
 
 import { geminiProModel } from "@/ai";
 import {
-  generateReservationPrice,
-  generateSampleFlightSearchResults,
-  generateSampleFlightStatus,
-  generateSampleSeatSelection,
+  findCharities,
+  getCharityDetails,
+  calculateDonation,
 } from "@/ai/actions";
 import { auth } from "@/app/(auth)/auth";
 import {
@@ -35,22 +34,21 @@ export async function POST(request: Request) {
   const result = await streamText({
     model: geminiProModel,
     system: `\n
-        - you help users book flights!
-        - keep your responses limited to a sentence.
-        - DO NOT output lists.
-        - after every tool call, pretend you're showing the result to the user and keep your response limited to a phrase.
+        - you are 'Fund The World', a platform that helps users discover and donate to charity organizations!
+        - keep your responses limited to a sentence, unless the user wants a good understanding of a specific charity.
+        - ONLY output lists if the user asks for information about a category of organizations.
         - today's date is ${new Date().toLocaleDateString()}.
         - ask follow up questions to nudge user into the optimal flow
-        - ask for any details you don't know, like name of passenger, etc.'
-        - C and D are aisle seats, A and F are window seats, B and E are middle seats
-        - assume the most popular airports for the origin and destination
+        - ask for any details you don't know, etc.'
+        - be knowledgeable and passionate about social impact and charitable causes
+        - emphasize the concrete impact donations can make (e.g., "$10 provides 5 meals"), HOWEVER, be clear that this is an estimate.
+        - highlight tax deduction benefits IF applicable, and IF the user wants that.
         - here's the optimal flow
-          - search for flights
-          - choose flight
-          - select seats
-          - create reservation (ask user whether to proceed with payment or change reservation)
-          - authorize payment (requires user consent, wait for user to finish payment and let you know when done)
-          - display boarding pass (DO NOT display boarding pass without verifying payment)
+          - search for charities based on user's interests/causes
+          - provide charity details and impact information
+          - calculate donation (ask user about donation amount, recurring options, and matching)
+          - process donation (ask user whether to proceed with payment or modify donation)
+          - provide donation receipt and impact summary after payment confirmation
         '
       `,
     messages: coreMessages,
@@ -70,81 +68,30 @@ export async function POST(request: Request) {
           return weatherData;
         },
       },
-      displayFlightStatus: {
-        description: "Display the status of a flight",
-        parameters: z.object({
-          flightNumber: z.string().describe("Flight number"),
-          date: z.string().describe("Date of the flight"),
-        }),
-        execute: async ({ flightNumber, date }) => {
-          const flightStatus = await generateSampleFlightStatus({
-            flightNumber,
-            date,
-          });
 
-          return flightStatus;
-        },
-      },
-      searchFlights: {
-        description: "Search for flights based on the given parameters",
+      createDonation: {
+        description: "Create a donation record in the database",
         parameters: z.object({
-          origin: z.string().describe("Origin airport or city"),
-          destination: z.string().describe("Destination airport or city"),
-        }),
-        execute: async ({ origin, destination }) => {
-          const results = await generateSampleFlightSearchResults({
-            origin,
-            destination,
-          });
-
-          return results;
-        },
-      },
-      selectSeats: {
-        description: "Select seats for a flight",
-        parameters: z.object({
-          flightNumber: z.string().describe("Flight number"),
-        }),
-        execute: async ({ flightNumber }) => {
-          const seats = await generateSampleSeatSelection({ flightNumber });
-          return seats;
-        },
-      },
-      createReservation: {
-        description: "Display pending reservation details",
-        parameters: z.object({
-          seats: z.string().array().describe("Array of selected seat numbers"),
-          flightNumber: z.string().describe("Flight number"),
-          departure: z.object({
-            cityName: z.string().describe("Name of the departure city"),
-            airportCode: z.string().describe("Code of the departure airport"),
-            timestamp: z.string().describe("ISO 8601 date of departure"),
-            gate: z.string().describe("Departure gate"),
-            terminal: z.string().describe("Departure terminal"),
-          }),
-          arrival: z.object({
-            cityName: z.string().describe("Name of the arrival city"),
-            airportCode: z.string().describe("Code of the arrival airport"),
-            timestamp: z.string().describe("ISO 8601 date of arrival"),
-            gate: z.string().describe("Arrival gate"),
-            terminal: z.string().describe("Arrival terminal"),
-          }),
-          passengerName: z.string().describe("Name of the passenger"),
+          charityId: z.string().describe("Unique identifier for the charity"),
+          charityName: z.string().describe("Name of the charity"),
+          donationAmountInUSD: z.number().describe("Donation amount in USD"),
+          isRecurring: z.boolean().describe("Whether this is a recurring donation"),
+          recurringFrequency: z.string().optional().describe("Frequency of recurring donation (e.g., monthly, quarterly, yearly)"),
+          donorName: z.string().describe("Name of the donor"),
+          donorEmail: z.string().optional().describe("Email of the donor for receipt"),
         }),
         execute: async (props) => {
-          const { totalPriceInUSD } = await generateReservationPrice(props);
           const session = await auth();
-
           const id = generateUUID();
 
           if (session && session.user && session.user.id) {
             await createReservation({
               id,
               userId: session.user.id,
-              details: { ...props, totalPriceInUSD },
+              details: { ...props },
             });
 
-            return { id, ...props, totalPriceInUSD };
+            return { id, ...props, success: true };
           } else {
             return {
               error: "User is not signed in to perform this action!",
@@ -154,63 +101,109 @@ export async function POST(request: Request) {
       },
       authorizePayment: {
         description:
-          "User will enter credentials to authorize payment, wait for user to repond when they are done",
+          "User will enter credentials to authorize donation payment, wait for user to respond when they are done",
         parameters: z.object({
-          reservationId: z
+          donationId: z
             .string()
-            .describe("Unique identifier for the reservation"),
+            .describe("Unique identifier for the donation"),
         }),
-        execute: async ({ reservationId }) => {
-          return { reservationId };
+        execute: async ({ donationId }) => {
+          return { donationId };
         },
       },
       verifyPayment: {
-        description: "Verify payment status",
+        description: "Verify donation payment status",
         parameters: z.object({
-          reservationId: z
+          donationId: z
             .string()
-            .describe("Unique identifier for the reservation"),
+            .describe("Unique identifier for the donation"),
         }),
-        execute: async ({ reservationId }) => {
-          const reservation = await getReservationById({ id: reservationId });
+        execute: async ({ donationId }) => {
+          const donation = await getReservationById({ id: donationId });
 
-          if (reservation.hasCompletedPayment) {
+          if (donation.hasCompletedPayment) {
             return { hasCompletedPayment: true };
           } else {
             return { hasCompletedPayment: false };
           }
         },
       },
-      displayBoardingPass: {
-        description: "Display a boarding pass",
+      generateDonationReceipt: {
+        description: "Generate a receipt for a completed donation",
         parameters: z.object({
-          reservationId: z
+          donationId: z
             .string()
-            .describe("Unique identifier for the reservation"),
-          passengerName: z
+            .describe("Unique identifier for the donation"),
+          donorName: z
             .string()
-            .describe("Name of the passenger, in title case"),
-          flightNumber: z.string().describe("Flight number"),
-          seat: z.string().describe("Seat number"),
-          departure: z.object({
-            cityName: z.string().describe("Name of the departure city"),
-            airportCode: z.string().describe("Code of the departure airport"),
-            airportName: z.string().describe("Name of the departure airport"),
-            timestamp: z.string().describe("ISO 8601 date of departure"),
-            terminal: z.string().describe("Departure terminal"),
-            gate: z.string().describe("Departure gate"),
-          }),
-          arrival: z.object({
-            cityName: z.string().describe("Name of the arrival city"),
-            airportCode: z.string().describe("Code of the arrival airport"),
-            airportName: z.string().describe("Name of the arrival airport"),
-            timestamp: z.string().describe("ISO 8601 date of arrival"),
-            terminal: z.string().describe("Arrival terminal"),
-            gate: z.string().describe("Arrival gate"),
-          }),
+            .describe("Name of the donor, in title case"),
+          charityName: z.string().describe("Name of the charity"),
+          donationAmountInUSD: z.number().describe("Donation amount in USD"),
+          donationDate: z.string().describe("ISO 8601 date of donation"),
+          isRecurring: z.boolean().describe("Whether this is a recurring donation"),
+          estimatedImpact: z.string().describe("Estimated impact of the donation"),
         }),
-        execute: async (boardingPass) => {
-          return boardingPass;
+        execute: async (receiptDetails) => {
+          return receiptDetails;
+        },
+      },
+      searchCharities: {
+        description: "Search for charities based on category and keywords",
+        parameters: z.object({
+          category: z
+            .string()
+            .describe(
+              "Category of charity (e.g., Education, Health, Environment)",
+            ),
+          keywords: z
+            .string()
+            .describe("Keywords to narrow down charity search"),
+        }),
+        execute: async ({ category, keywords }) => {
+          const results = await findCharities({
+            category,
+            keywords,
+          });
+
+          return results;
+        },
+      },
+      getCharityInfo: {
+        description: "Get detailed information about a specific charity",
+        parameters: z.object({
+          charityId: z.string().describe("Unique identifier for the charity"),
+        }),
+        execute: async ({ charityId }) => {
+          const charityInfo = await getCharityDetails({
+            charityId,
+          });
+
+          return charityInfo;
+        },
+      },
+      processDonation: {
+        description: "Calculate donation details including impact and receipt",
+        parameters: z.object({
+          charityId: z.string().describe("Unique identifier for the charity"),
+          charityName: z.string().describe("Name of the charity"),
+          donationAmountInUSD: z.number().describe("Donation amount in USD"),
+          isRecurring: z
+            .boolean()
+            .describe("Whether this is a recurring donation"),
+          recurringFrequency: z
+            .string()
+            .optional()
+            .describe(
+              "Frequency of recurring donation (e.g., monthly, quarterly, yearly)",
+            ),
+          donorName: z.string().describe("Name of the donor"),
+          matchingEnabled: z
+            .boolean()
+            .describe("Whether to enable donation matching if available"),
+        }),
+        execute: async (props) => {
+          const donationDetails = await calculateDonation(props);
+          return donationDetails;
         },
       },
     },

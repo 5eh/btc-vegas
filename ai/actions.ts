@@ -133,3 +133,153 @@ export async function generateReservationPrice(props: {
 
   return reservation;
 }
+
+export async function findCharities({
+  category,
+  keywords,
+}: {
+  category: string;
+  keywords: string;
+}) {
+  const { object: charitySearchResults } = await generateObject({
+    model: geminiFlashModel,
+    prompt: `Generate search results for charities in the ${category} category with focus on ${keywords}, limit to 4 results`,
+    output: "array",
+    schema: z.object({
+      id: z.string().describe("Unique identifier for the charity"),
+      name: z.string().describe("Name of the charity organization"),
+      category: z
+        .string()
+        .describe(
+          "Primary category of the charity (e.g., Education, Health, Environment)",
+        ),
+      description: z
+        .string()
+        .describe("Brief description of the charity's mission"),
+      location: z.object({
+        city: z.string().describe("City where the charity is based"),
+        country: z.string().describe("Country where the charity is based"),
+      }),
+      impactMetric: z
+        .string()
+        .describe(
+          "Primary impact metric (e.g., '100 meals per $50', '10 trees planted per $20')",
+        ),
+      matchingDonation: z
+        .boolean()
+        .describe("Whether this charity has matching donations available"),
+      minimumDonationInUSD: z
+        .number()
+        .describe("Minimum suggested donation in US dollars"),
+    }),
+  });
+
+  return { charities: charitySearchResults };
+}
+
+export async function getCharityDetails({ charityId }: { charityId: string }) {
+  const { object: charityDetails } = await generateObject({
+    model: geminiFlashModel,
+    prompt: `Detailed information for charity with ID ${charityId}`,
+    schema: z.object({
+      id: z.string().describe("Unique identifier for the charity"),
+      name: z.string().describe("Name of the charity organization"),
+      founded: z.number().describe("Year the charity was founded"),
+      mission: z.string().describe("The charity's mission statement"),
+      category: z.string().describe("Primary category of charity"),
+      subcategories: z
+        .array(z.string())
+        .describe("List of subcategories/focus areas"),
+      location: z.object({
+        headquarters: z.string().describe("City and country of headquarters"),
+        operatingRegions: z
+          .array(z.string())
+          .describe("Regions where the charity operates"),
+      }),
+      financials: z.object({
+        totalAnnualBudget: z
+          .number()
+          .describe("Annual operating budget in USD"),
+        programExpensePercentage: z
+          .number()
+          .describe("Percentage of funds that go to programs"),
+        adminExpensePercentage: z
+          .number()
+          .describe("Percentage of funds that go to administration"),
+        fundraisingExpensePercentage: z
+          .number()
+          .describe("Percentage of funds that go to fundraising"),
+      }),
+      impactMetrics: z.array(
+        z.object({
+          description: z.string().describe("Description of impact metric"),
+          value: z.string().describe("Quantified impact per dollar amount"),
+        }),
+      ),
+      websiteUrl: z.string().describe("URL to the charity's website"),
+      taxDeductible: z
+        .boolean()
+        .describe("Whether donations are tax-deductible"),
+    }),
+  });
+
+  return charityDetails;
+}
+
+export async function calculateDonation({
+  charityId,
+  charityName,
+  donationAmountInUSD,
+  isRecurring,
+  recurringFrequency,
+  donorName,
+  matchingEnabled,
+}: {
+  charityId: string;
+  charityName: string;
+  donationAmountInUSD: number;
+  isRecurring: boolean;
+  recurringFrequency?: string;
+  donorName: string;
+  matchingEnabled: boolean;
+}) {
+  const { object: donationDetails } = await generateObject({
+    model: geminiFlashModel,
+    prompt: `Calculate donation details for the following parameters\n\n${JSON.stringify(
+      {
+        charityId,
+        charityName,
+        donationAmountInUSD,
+        isRecurring,
+        recurringFrequency,
+        donorName,
+        matchingEnabled,
+      },
+      null,
+      2,
+    )}`,
+    schema: z.object({
+      totalDonationInUSD: z
+        .number()
+        .describe("Total donation amount in US dollars"),
+      totalDonationInBTC: z
+        .number()
+        .describe("Total donation amount converted to Bitcoin"),
+      estimatedImpact: z
+        .string()
+        .describe("Estimated impact description based on donation amount"),
+      transactionFeeInUSD: z.number().describe("Transaction fee in US dollars"),
+      taxDeductionEstimateInUSD: z
+        .number()
+        .describe("Estimated tax deduction amount in US dollars"),
+      matchingAmountInUSD: z
+        .number()
+        .describe("Additional matching amount in US dollars, if applicable"),
+      receiptId: z
+        .string()
+        .describe("Unique identifier for the donation receipt"),
+    }),
+  });
+
+  return donationDetails;
+}
