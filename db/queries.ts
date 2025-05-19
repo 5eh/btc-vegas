@@ -1,12 +1,17 @@
+gudeez, [5/19/2025 5:47 PM]
 import "server-only";
 
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { user, chat, User, reservation } from "./schema";
 
-let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
+import { user, chat, User, reservation, organization, Organization } from "./schema";
+
+// Optionally, if not using email/pass login, you can
+// use the Drizzle adapter for Auth.js / NextAuth
+// https://authjs.dev/reference/adapter/drizzle
+let client = postgres(${process.env.POSTGRES_URL!}?sslmode=require);
 let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
@@ -17,8 +22,6 @@ export async function getUser(email: string): Promise<Array<User>> {
     throw error;
   }
 }
-
-// Add export function using CRUD
 
 export async function createUser(email: string, password: string) {
   let salt = genSaltSync(10);
@@ -137,4 +140,51 @@ export async function updateReservation({
       hasCompletedPayment,
     })
     .where(eq(reservation.id, id));
+}
+
+export async function createOrganization(org: Omit<Organization, "id" | "createdAt" | "updatedAt">) {
+  try {
+    return await db.insert(organization).values(org);
+  } catch (error) {
+    console.error("Failed to create organization in database");
+    throw error;
+  }
+}
+
+export async function getOrganizationById({ id }: { id: string }) {
+  try {
+    const [selectedOrg] = await db.select().from(organization).where(eq(organization.id, id));
+    return selectedOrg;
+  } catch (error) {
+    console.error("Failed to get organization by id from database");
+    throw error;
+  }
+}
+
+gudeez, [5/19/2025 5:47 PM]
+export async function getAllOrganizations() {
+  try {
+    return await db.select().from(organization).orderBy(desc(organization.createdAt));
+  } catch (error) {
+    console.error("Failed to get all organizations from database");
+    throw error;
+  }
+}
+
+export async function updateOrganization({ id, values }: { id: string; values: Partial<Organization> }) {
+  try {
+    return await db.update(organization).set(values).where(eq(organization.id, id));
+  } catch (error) {
+    console.error("Failed to update organization in database");
+    throw error;
+  }
+}
+
+export async function deleteOrganizationById({ id }: { id: string }) {
+  try {
+    return await db.delete(organization).where(eq(organization.id, id));
+  } catch (error) {
+    console.error("Failed to delete organization by id from database");
+    throw error;
+  }
 }

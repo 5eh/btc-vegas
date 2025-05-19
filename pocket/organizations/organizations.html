@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketBase organizations</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .organizations-list {
+            list-style: none;
+            padding: 0;
+        }
+        .contact-card {
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .contact-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .contact-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        .contact-detail {
+            margin-bottom: 5px;
+        }
+        .loading, .error {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Organizations</h1>
+    <div id="app">
+        <div class="loading">Loading organizations...</div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.es.min.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import PocketBase from 'pocketbase';
+
+        // Initialize PocketBase
+        const pb = new PocketBase('http://127.0.0.1:8090');
+        
+        // Get the app container
+        const app = document.getElementById('app');
+
+
+async function loadOrganizations() {
+    try {
+        // Fetch all organizations from the organizations collection
+        const records = await pb.collection('organizations').getFullList({
+        });
+console.log(records);
+
+        
+        displayOrganizations(records);
+    } catch (error) {
+        console.error('Error fetching organizations:', error);
+        app.innerHTML = `
+            <div class="error">
+                <p>Error loading Organizations: ${error.message}</p>
+                <p>Make sure PocketBase is running at http://127.0.0.1:8090 and the Organizations collection exists.</p>
+            </div>
+        `;
+    }
+}
+
+function displayOrganizations(organizations) {
+    if (Organizations.length === 0) {
+        app.innerHTML = '<p>No Organizations found. Add some Organizations to your PocketBase database.</p>';
+        return;
+    }
+
+    // Create a list element to hold all Organizations
+    const organizationsList = document.createElement('ul');
+    organizationsList.className = 'organizations-list';
+
+    // Add each contact to the list
+    organizations.forEach(organization => {
+        const contactCard = document.createElement('li');
+        contactCard.className = 'contact-card';
+        
+        // Create contact content
+        let contactContent = `<div class="contact-name">${organization.name || 'Unnamed Organization'}</div>`;
+        
+        // Add each field from the contact object (excluding internal fields)
+        Object.entries(organizations).forEach(([key, value]) => {
+            // Skip internal PocketBase fields and empty values
+            if (!['id', 'collectionId', 'collectionName', 'created', 'updated', 'id', 'nickname', 'image', 'title', 'mission', 'tags', 'verified', 'premium', 'bgGradient', 'bitcoinAddress', 'location', 'fullContext', 'website', 'email', 'originDate', 'registrationNumber', 'president', 'founder', 'banner', 'customMessage'].includes(key) && 
+                value && key !== 'name') {
+                
+                // Format the field name for display (capitalize first letter)
+                const fieldName = key.charAt(0).toUpperCase() + key.slice(1);
+                
+                // Add the field to the contact card
+                contactContent += `<div class="contact-detail"><strong>${fieldName}:</strong> ${value}</div>`;
+            }
+        });
+        
+        contactCard.innerHTML = contactContent;
+        organizationsList.appendChild(contactCard);
+    });
+
+    // Replace loading message with organizations list
+    app.innerHTML = '';
+    app.appendChild(organizationsList);
+}
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', () => {
+    loadOrganizations();
+});
+
+// Optional: Set up realtime subscription for live updates
+pb.collection('organizations').subscribe('*', function(e) {
+    console.log('Realtime update:', e);
+    // Reload organizations when there's any change
+    loadOrganizations();
+});
+    </script>
+</body>
+</html>

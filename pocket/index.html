@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketBase Contacts</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .contacts-list {
+            list-style: none;
+            padding: 0;
+        }
+        .contact-card {
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .contact-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .contact-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        .contact-detail {
+            margin-bottom: 5px;
+        }
+        .loading, .error {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Contacts</h1>
+    <div id="app">
+        <div class="loading">Loading contacts...</div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.22.0/dist/pocketbase.es.min.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import PocketBase from 'pocketbase';
+
+        // Initialize PocketBase
+        const pb = new PocketBase('http://127.0.0.1:8090');
+        
+        // Get the app container
+        const app = document.getElementById('app');
+
+
+async function loadContacts() {
+    try {
+        // Fetch all contacts from the Contacts collection
+        const records = await pb.collection('contacts').getFullList({
+        });
+console.log(records);
+
+        
+        displayContacts(records);
+    } catch (error) {
+        console.error('Error fetching contacts:', error);
+        app.innerHTML = `
+            <div class="error">
+                <p>Error loading contacts: ${error.message}</p>
+                <p>Make sure PocketBase is running at http://127.0.0.1:8090 and the Contacts collection exists.</p>
+            </div>
+        `;
+    }
+}
+
+function displayContacts(contacts) {
+    if (contacts.length === 0) {
+        app.innerHTML = '<p>No contacts found. Add some contacts to your PocketBase database.</p>';
+        return;
+    }
+
+    // Create a list element to hold all contacts
+    const contactsList = document.createElement('ul');
+    contactsList.className = 'contacts-list';
+
+    // Add each contact to the list
+    contacts.forEach(contact => {
+        const contactCard = document.createElement('li');
+        contactCard.className = 'contact-card';
+        
+        // Create contact content
+        let contactContent = `<div class="contact-name">${contact.name || 'Unnamed Contact'}</div>`;
+        
+        // Add each field from the contact object (excluding internal fields)
+        Object.entries(contact).forEach(([key, value]) => {
+            // Skip internal PocketBase fields and empty values
+            if (!['id', 'collectionId', 'collectionName', 'created', 'updated'].includes(key) && 
+                value && key !== 'name') {
+                
+                // Format the field name for display (capitalize first letter)
+                const fieldName = key.charAt(0).toUpperCase() + key.slice(1);
+                
+                // Add the field to the contact card
+                contactContent += `<div class="contact-detail"><strong>${fieldName}:</strong> ${value}</div>`;
+            }
+        });
+        
+        contactCard.innerHTML = contactContent;
+        contactsList.appendChild(contactCard);
+    });
+
+    // Replace loading message with contacts list
+    app.innerHTML = '';
+    app.appendChild(contactsList);
+}
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', () => {
+    loadContacts();
+});
+
+// Optional: Set up realtime subscription for live updates
+pb.collection('Contacts').subscribe('*', function(e) {
+    console.log('Realtime update:', e);
+    // Reload contacts when there's any change
+    loadContacts();
+});
+    </script>
+</body>
+</html>
