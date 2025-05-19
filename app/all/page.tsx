@@ -129,10 +129,10 @@ const Page = () => {
                   <div className="h-48 overflow-hidden relative group">
                     <div className="relative size-full">
                       <Image
-                        src={charity.image || "/api/placeholder/600/400"}
+                        src={charity.image}
                         alt={charity.title}
                         fill
-                        className={`object-cover transition-all duration-700 ease-in-out ${
+                        className={`object-cover contrast-125 transition-all duration-700 ease-in-out ${
                           (spotlightId === charity.id &&
                             blurEnabled &&
                             !searchActive) ||
@@ -144,7 +144,7 @@ const Page = () => {
                       />
                     </div>
                     <div
-                      className={`absolute bottom-2 right-2 flex space-x-1 transition-opacity duration-300 ${
+                      className={`absolute bottom-2 right-2 flex space-x-1 transition-opacity duration-300  ${
                         (spotlightId === charity.id &&
                           blurEnabled &&
                           !searchActive) ||
@@ -155,12 +155,12 @@ const Page = () => {
                       } group-hover:opacity-100`}
                     >
                       {charity.verified && (
-                        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                        <span className="bg-primary/30 border backdrop-blur-md border-primary text-white text-xs px-2 py-1 rounded-bl-none rounded-tr-none rounded shadow-md">
                           Verified
                         </span>
                       )}
                       {charity.premium && (
-                        <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                        <span className="bg-[#f7931a]/30 border border-[#f7931a] backdrop-blur-md text-white text-xs px-2 py-1 rounded-tl-none rounded-br-none rounded ">
                           Premium
                         </span>
                       )}
@@ -175,11 +175,11 @@ const Page = () => {
                     <p className="text-sm text-gray-600 mb-3">
                       {charity.mission}
                     </p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 justify-end ">
                       {charity.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded"
+                          className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1 "
                         >
                           {tag}
                         </span>

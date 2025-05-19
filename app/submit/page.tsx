@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Label } from "@radix-ui/react-label";
 import { useCountries } from "use-react-countries";
 import { isCompanyEmail } from "company-email-validator";
+import { Button } from "@/components/ui/button";
+import MarkdownEditor from "@/components/markdown";
 
 const Page = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -16,6 +18,9 @@ const Page = () => {
     businessContext: "",
     email: "",
     country: "",
+    state: "",
+    tags: ["", "", ""],
+    aWord: "",
   });
   const [emailError, setEmailError] = useState("");
 
@@ -51,14 +56,13 @@ const Page = () => {
           </h1>
 
           <div className="space-y-6">
-            <div className="warning-box bg-yellow-500/10 p-4 rounded-lg mb-6">
-              <p className="text-yellow-500">
+            <div className="warning-box bg-primary/10 p-4 border border-primary rounded-lg mb-6">
+              <p className="text-gray-600 dark:text-gray-200">
                 Warning: A submission fee of $30 is required to process your
                 application. This helps us develop and maintain{" "}
                 <code className="text-primary rounded-none bg-muted-foreground/15 px-1.5 py-0.5">
-                  Fund The World
+                  Fund The World!
                 </code>
-                .
               </p>
             </div>
 
@@ -90,28 +94,41 @@ const Page = () => {
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="country">Country</Label>
-                <select
-                  id="country"
-                  name="country"
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.country}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select a country</option>
-                  {countries.map((country) => (
-                    <option key={country.id} value={country.id}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="country">Country</Label>
+                  <select
+                    id="country"
+                    name="country"
+                    className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Select a country</option>
+                    {countries.map((country) => (
+                      <option key={country.id} value={country.id}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="state">State/Province</Label>
+                  <input
+                    type="text"
+                    id="state"
+                    name="state"
+                    className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
 
               <div>
-                <Label htmlFor="orgPicture">Organization Picture URL</Label>
+                <Label htmlFor="orgPicture">Organization Picture</Label>
                 <input
-                  type="url"
+                  type="file"
                   id="orgPicture"
                   name="orgPicture"
                   className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
@@ -121,9 +138,9 @@ const Page = () => {
               </div>
 
               <div>
-                <Label htmlFor="orgBanner">Organization Banner URL</Label>
+                <Label htmlFor="orgBanner">Organization Banner</Label>
                 <input
-                  type="url"
+                  type="file"
                   id="orgBanner"
                   name="orgBanner"
                   className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
@@ -141,19 +158,75 @@ const Page = () => {
                   className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
                   value={formData.tagline}
                   onChange={handleInputChange}
+                  placeholder="15 word catchline to introduce your project."
                 />
               </div>
 
               <div>
-                <Label htmlFor="businessContext">Business Context</Label>
+                <Label htmlFor="businessContext" className="font-bold">
+                  Business Context
+                </Label>{" "}
+                <span className="text-gray-400/50 dark:text-gray-200/50">
+                  Please provide all the business context necessary for our
+                  donators to be able to converse and question your work
+                </span>
                 <textarea
                   id="businessContext"
                   name="businessContext"
                   rows={4}
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                  className="w-full mt-2 bg-white/5 rounded border border-gray-600 p-2"
                   value={formData.businessContext}
                   onChange={handleInputChange}
                   placeholder="Provide as much information as you'd like about your business..."
+                />
+              </div>
+
+              <div>
+                <Label>Custom Tags (Choose up to 3)</Label>
+                <div className="grid grid-cols-3 gap-4 mt-2">
+                  {formData.tags.map((tag, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      value={tag}
+                      onChange={(e) => {
+                        const newTags = [...formData.tags];
+                        newTags[index] = e.target.value;
+                        setFormData((prev) => ({ ...prev, tags: newTags }));
+                      }}
+                      className="w-full bg-white/5 rounded border border-gray-600 p-2"
+                      placeholder={`Tag ${index + 1}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-2 relative group">
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-gray-900/80 group-hover:opacity-0 transition-opacity duration-300 ease-in-out pointer-events-none"></div>
+                  {formData.tags.map(
+                    (tag, index) =>
+                      tag && (
+                        <span
+                          key={index}
+                          className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1"
+                        >
+                          {tag}
+                        </span>
+                      ),
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-gray-400/50 dark:text-gray-200/50 block mb-4">
+                  Please create a markdown format for your custom message to
+                  your possible donators! As long or short as you&apos;d like
+                </span>
+                <MarkdownEditor
+                  value={formData.aWord}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, aWord: value }))
+                  }
+                  label="A Word"
+                  placeholder="Write your markdown message here... Use **bold**, *italic*, [links](url), and more!"
                 />
               </div>
             </div>
@@ -171,6 +244,11 @@ const Page = () => {
                   Can&apos;t load widget
                 </iframe>
               )}
+            </div>
+            <div className="w-full justify-center flex">
+              <Button className="border-primary w-full" variant="outline">
+                Submit
+              </Button>
             </div>
           </div>
         </div>
