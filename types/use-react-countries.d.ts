@@ -1,4 +1,4 @@
-declare module 'use-react-countries' {
+declare module "use-react-countries" {
   interface Country {
     id: string;
     name: string;

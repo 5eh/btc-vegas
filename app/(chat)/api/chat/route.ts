@@ -74,8 +74,14 @@ export async function POST(request: Request) {
           charityId: z.string().describe("Unique identifier for the charity"),
           charityName: z.string().describe("Name of the charity"),
           donationAmountInUSD: z.number().describe("Donation amount in USD"),
-          donationAmountInBTC: z.number().optional().describe("Donation amount in BTC"),
-          bitcoinAddress: z.string().optional().describe("Bitcoin address for donation"),
+          donationAmountInBTC: z
+            .number()
+            .optional()
+            .describe("Donation amount in BTC"),
+          bitcoinAddress: z
+            .string()
+            .optional()
+            .describe("Bitcoin address for donation"),
           isRecurring: z
             .boolean()
             .describe("Whether this is a recurring donation"),
@@ -115,18 +121,28 @@ export async function POST(request: Request) {
           "User will enter credentials to authorize donation payment, wait for user to respond when they are done",
         parameters: z.object({
           donationId: z.string().describe("Unique identifier for the donation"),
-          charityName: z.string().describe("Name of the charity receiving the donation"),
+          charityName: z
+            .string()
+            .describe("Name of the charity receiving the donation"),
           bitcoinAddress: z.string().describe("Bitcoin address for donation"),
           donationAmount: z.number().describe("Amount of BTC to donate"),
-          donationPurpose: z.string().describe("Purpose of the donation for QR code message"),
+          donationPurpose: z
+            .string()
+            .describe("Purpose of the donation for QR code message"),
         }),
-        execute: async ({ donationId, charityName, bitcoinAddress, donationAmount, donationPurpose }) => {
-          return { 
-            donationId, 
+        execute: async ({
+          donationId,
+          charityName,
+          bitcoinAddress,
+          donationAmount,
+          donationPurpose,
+        }) => {
+          return {
+            donationId,
             charityName,
             bitcoinAddress,
             donationAmount,
-            donationPurpose
+            donationPurpose,
           };
         },
       },
@@ -152,7 +168,10 @@ export async function POST(request: Request) {
           donorName: z.string().describe("Name of the donor, in title case"),
           charityName: z.string().describe("Name of the charity"),
           donationAmountInUSD: z.number().describe("Donation amount in USD"),
-          donationAmountInBTC: z.number().optional().describe("Donation amount in BTC if applicable"),
+          donationAmountInBTC: z
+            .number()
+            .optional()
+            .describe("Donation amount in BTC if applicable"),
           donationDate: z.string().describe("ISO 8601 date of donation"),
           isRecurring: z
             .boolean()
