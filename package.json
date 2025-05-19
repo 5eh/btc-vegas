@@ -27,6 +27,7 @@
     "@vercel/postgres": "^0.10.0",
     "ai": "3.4.9",
     "bcrypt-ts": "^5.0.2",
+    "bitcoinjs-lib": "^6.1.7",
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
