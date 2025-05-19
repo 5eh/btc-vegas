@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
+import { BitcoinIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { LogoGoogle, MessageIcon, VercelIcon } from "./icons";
-import Image from "next/image";
-import { BitcoinIcon } from "lucide-react";
 
 export const Overview = () => {
   return (
