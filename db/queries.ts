@@ -1,5 +1,3 @@
-import "server-only";
-
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -170,10 +168,7 @@ export async function getOrganizationById({ id }: { id: string }) {
 
 export async function getAllOrganizations() {
   try {
-    return await db
-      .select()
-      .from(organization)
-      .orderBy(desc(organization.createdAt));
+    return await db.select().from(organization).orderBy(desc(organization));
   } catch (error) {
     console.error("Failed to get all organizations from database");
     throw error;
@@ -203,6 +198,19 @@ export async function deleteOrganizationById({ id }: { id: string }) {
     return await db.delete(organization).where(eq(organization.id, id));
   } catch (error) {
     console.error("Failed to delete organization by id from database");
+    throw error;
+  }
+}
+
+export async function getOrganizationByNickname({ nickname }: { nickname: string }) {
+  try {
+    const [selectedOrg] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.nickname, nickname));
+    return selectedOrg;
+  } catch (error) {
+    console.error("Failed to get organization by nickname from database");
     throw error;
   }
 }

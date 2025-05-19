@@ -33,7 +33,6 @@ const Page = () => {
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle search functionality
   const handleSearch = (query: string): void => {
     if (!query.trim()) {
       setFilteredCharities(charities);

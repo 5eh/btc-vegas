@@ -45,45 +45,27 @@ export const reservation = pgTable("Reservation", {
 
 export type Reservation = InferSelectModel<typeof reservation>;
 
-// Add the new organizations table
-export const organization = pgTable("Organization", {
+export const organization = pgTable("organizations", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   nickname: text("nickname").notNull(),
   image: text("image").notNull(),
   title: text("title").notNull(),
   mission: text("mission").notNull(),
-  tags: json("tags").notNull(), // Array of text stored as JSON
+  tags: json("tags").notNull(),
   verified: boolean("verified").notNull().default(false),
   premium: boolean("premium").notNull().default(false),
-  bgGradient: varchar("bgGradient", { length: 100 }),
-  bitcoinAddress: varchar("bitcoinAddress", { length: 100 }),
+  bgGradient: varchar("bggradient", { length: 100 }),
+  bitcoinAddress: varchar("bitcoinaddress", { length: 100 }),
   location: varchar("location", { length: 100 }),
-  fullContext: text("fullContext"),
+  fullContext: text("fullcontext"),
   website: text("website"),
   email: text("email"),
-  originDate: date("originDate"),
-  registrationNumber: varchar("registrationNumber", { length: 100 }),
+  originDate: date("startdate"),
+  registrationNumber: varchar("registrationnumber", { length: 100 }),
   president: text("president"),
   founder: text("founder"),
   banner: text("banner"),
-  customMessage: text("customMessage"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  customMessage: text("custommessage"),
 });
 
 export type Organization = InferSelectModel<typeof organization>;
-
-// If you want to track association between users and organizations
-export const userOrganization = pgTable("UserOrganization", {
-  id: uuid("id").primaryKey().notNull().defaultRandom(),
-  userId: uuid("userId")
-    .notNull()
-    .references(() => user.id),
-  organizationId: uuid("organizationId")
-    .notNull()
-    .references(() => organization.id),
-  role: varchar("role", { length: 50 }).notNull(),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-});
-
-export type UserOrganization = InferSelectModel<typeof userOrganization>;
