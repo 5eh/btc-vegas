@@ -23,12 +23,7 @@ export const Navbar = async () => {
         <div className="flex flex-row gap-3 items-center">
           <History user={session?.user} />
           <div className="flex flex-row gap-2 items-center">
-            <Image
-              src="/images/icon.svg"
-              height={30}
-              width={30}
-              alt="gemini logo"
-            />
+            <Image src="/images/Logo.png" height={30} width={30} alt="FTW" />
             <div className="text-zinc-500">|</div>
             <Link href="/">
               <div className="text-sm dark:text-zinc-300 truncate w-28 md:w-fit">
@@ -40,7 +35,7 @@ export const Navbar = async () => {
 
         <div className="flex gap-4 px-4">
           <Link href={"/all"}>
-            <button className="px-4 py-2 rounded-full text-black dark:text-white blur-sm hover:blur-0  border border-[#F7931A] transition hover:ease-in-out hover:border hover:border-[#F7931A]">
+            <button className="px-4 py-2 rounded-full text-black dark:text-white  blur-sm hover:blur-0  border border-primary transition hover:ease-in-out hover:border hover:border-primary">
               All Organizations
             </button>
           </Link>
@@ -49,7 +44,7 @@ export const Navbar = async () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className="px-4 py-2 rounded-full text-black dark:text-white blur-sm hover:blur-0 border border-[#F7931A] transition hover:ease-in-out bg-transparent"
+                className="px-4 py-2 rounded-full text-black dark:text-white blur-sm hover:blur-0 border border-primary transition hover:ease-in-out bg-transparent"
                 variant="secondary"
               >
                 {session.user?.email}

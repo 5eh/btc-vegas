@@ -42,7 +42,6 @@ const DirectSearch = ({ onSearch, blurEnabled, onToggleBlur }) => {
           )}
         </div>
 
-        {/* Blur toggle button */}
         <button
           onClick={onToggleBlur}
           className={`flex items-center justify-center bg-primary gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300`}

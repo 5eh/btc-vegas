@@ -168,7 +168,7 @@ const Page = () => {
                   </div>
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-black">
+                      <h3 className="text-lg font-bold dark:text-white text-black">
                         {charity.title}
                       </h3>
                     </div>

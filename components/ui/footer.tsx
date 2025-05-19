@@ -10,8 +10,8 @@ const Footer = () => {
       <div className="flex flex-col items-center">
         <div className="mb-8 rounded-full   p-8">
           <Image
-            src="/images/icon.svg"
-            alt="Arthur Labs Logo"
+            src="/images/Logo.png"
+            alt="Fund the World"
             width={96}
             height={96}
             className="w-24 h-24"
@@ -40,7 +40,7 @@ const Footer = () => {
         <div className="py-2">Are you an organization?</div>
         <div className="mb-8 w-full max-w-md flex justify-center">
           <Link href="/submit">
-            <Button className="bg-[#F7931A] rounded-full text-white hover:bg-[#F7931A]/70 hover:border hover:border-[#F7931A]">
+            <Button className="bg-primary rounded-full text-white hover:bg-primary/70 hover:border hover:border-primary">
               Create your spotlight!
             </Button>
           </Link>
