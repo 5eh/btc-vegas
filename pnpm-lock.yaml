@@ -65,6 +65,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      company-email-validator:
+        specifier: ^1.1.0
+        version: 1.1.0
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -137,6 +140,9 @@ importers:
       three:
         specifier: ^0.176.0
         version: 0.176.0
+      use-react-countries:
+        specifier: ^2.0.1
+        version: 2.0.1(react@19.0.0-rc-7771d3a7-20240827)
       usehooks-ts:
         specifier: ^3.1.0
         version: 3.1.0(react@19.0.0-rc-7771d3a7-20240827)
@@ -1795,6 +1801,10 @@ packages:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
 
+  company-email-validator@1.1.0:
+    resolution: {integrity: sha512-l+1UHQtGzea7OhSEDbjNzA8ISFarmfi3l+t5W/pwz3JSdCREwQHLmjjFSlHDIBnpClCp8JCg5h6sXu+F6vm3ag==}
+    engines: {node: '>4.0'}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -2005,6 +2015,10 @@ packages:
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
+
+  email-validator@2.0.4:
+    resolution: {integrity: sha512-gYCwo7kh5S3IDyZPLZf6hSS0MnZT8QmJFqYvbqlDZSbwdZlY6QZWxJ4i/6UhITOJ4XzyI647Bm2MXKCLqnJ4nQ==}
+    engines: {node: '>4.0'}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -3612,6 +3626,12 @@ packages:
       '@types/react':
         optional: true
 
+  use-react-countries@2.0.1:
+    resolution: {integrity: sha512-NMS8uIJMul9sgf4CBtuY2Q7oCHQ8yW3h1vBT+EOx23dTdEGOlxhWON3UtoS5Lklk2Ll9DJzYZbL3sZNlkdzk2A==}
+    engines: {node: '>=8', npm: '>=5'}
+    peerDependencies:
+      react: ^18.2.0
+
   use-sidecar@1.1.2:
     resolution: {integrity: sha512-epTbsLuzZ7lPClpz2TyryBfztm7m+28DlEv2ZCQ3MDr5ssiwyOwGH/e5F9CkfWjJ1t4clvI58yF822/GUkjjhw==}
     engines: {node: '>=10'}
@@ -5089,6 +5109,10 @@ snapshots:
 
   commander@4.1.1: {}
 
+  company-email-validator@1.1.0:
+    dependencies:
+      email-validator: 2.0.4
+
   concat-map@0.0.1: {}
 
   cookie@0.6.0: {}
@@ -5228,6 +5252,8 @@ snapshots:
       react: 19.0.0-rc-7771d3a7-20240827
 
   eastasianwidth@0.2.0: {}
+
+  email-validator@2.0.4: {}
 
   emoji-regex@8.0.0: {}
 
@@ -7363,6 +7389,10 @@ snapshots:
       tslib: 2.6.3
     optionalDependencies:
       '@types/react': 18.3.3
+
+  use-react-countries@2.0.1(react@19.0.0-rc-7771d3a7-20240827):
+    dependencies:
+      react: 19.0.0-rc-7771d3a7-20240827
 
   use-sidecar@1.1.2(@types/react@18.3.3)(react@19.0.0-rc-7771d3a7-20240827):
     dependencies:

@@ -39,11 +39,8 @@ const Footer = () => {
         </div>
         <div className="py-2">Are you an organization?</div>
         <div className="mb-8 w-full max-w-md flex justify-center">
-          <Link href="/contact">
-            <Button
-              type="submit"
-              className="bg-[#F7931A] rounded-full text-white hover:bg-[#F7931A]/70 hover:border hover:border-[#F7931A]"
-            >
+          <Link href="/submit">
+            <Button className="bg-[#F7931A] rounded-full text-white hover:bg-[#F7931A]/70 hover:border hover:border-[#F7931A]">
               Create your spotlight!
             </Button>
           </Link>

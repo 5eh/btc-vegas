@@ -30,6 +30,7 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "company-email-validator": "^1.1.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.34.0",
@@ -54,6 +55,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.176.0",
+    "use-react-countries": "^2.0.1",
     "usehooks-ts": "^3.1.0",
     "zod": "^3.23.8"
   },
