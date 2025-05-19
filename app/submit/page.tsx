@@ -3,10 +3,14 @@
 import { Label } from "@radix-ui/react-label";
 import { isCompanyEmail } from "company-email-validator";
 import { useState, useEffect } from "react";
-// @ts-ignore
 import { useCountries } from "use-react-countries";
 import MarkdownEditor from "@/components/markdown";
 import { Button } from "@/components/ui/button";
+
+interface Country {
+  id: string;
+  name: string;
+}
 
 const Page = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -106,7 +110,7 @@ const Page = () => {
                     onChange={handleInputChange}
                   >
                     <option value="">Select a country</option>
-                    {countries.map((country) => (
+                    {countries.map((country: Country) => (
                       <option key={country.id} value={country.id}>
                         {country.name}
                       </option>
