@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-
 import DirectSearch from "../../components/custom/search";
 import charities from "../../db/charities.json";
 

@@ -7,8 +7,8 @@ const Page = () => {
     <BitcoinQR
       amount={0.00001}
       bitcoinAddress="bc1qljwyvtarj5mvtf85ch3fa042qmquuemqgfh3wg"
-      message="Donate bitcoin to support this project"
-      title="Donate bitcoin"
+      message="Contribute to Organization Bitcoin"
+      title="Charity Name"
     />
   );
 };

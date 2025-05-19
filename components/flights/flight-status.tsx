@@ -1,5 +1,4 @@
 import { differenceInHours, format } from "date-fns";
-
 import { ArrowUpRightSmallIcon } from "../custom/icons";
 
 const SAMPLE = {

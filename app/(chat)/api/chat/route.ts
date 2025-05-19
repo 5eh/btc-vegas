@@ -1,6 +1,5 @@
 import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
-
 import { geminiProModel } from "@/ai";
 import {
   findCharities,
@@ -75,10 +74,22 @@ export async function POST(request: Request) {
           charityId: z.string().describe("Unique identifier for the charity"),
           charityName: z.string().describe("Name of the charity"),
           donationAmountInUSD: z.number().describe("Donation amount in USD"),
-          isRecurring: z.boolean().describe("Whether this is a recurring donation"),
-          recurringFrequency: z.string().optional().describe("Frequency of recurring donation (e.g., monthly, quarterly, yearly)"),
+          donationAmountInBTC: z.number().optional().describe("Donation amount in BTC"),
+          bitcoinAddress: z.string().optional().describe("Bitcoin address for donation"),
+          isRecurring: z
+            .boolean()
+            .describe("Whether this is a recurring donation"),
+          recurringFrequency: z
+            .string()
+            .optional()
+            .describe(
+              "Frequency of recurring donation (e.g., monthly, quarterly, yearly)",
+            ),
           donorName: z.string().describe("Name of the donor"),
-          donorEmail: z.string().optional().describe("Email of the donor for receipt"),
+          donorEmail: z
+            .string()
+            .optional()
+            .describe("Email of the donor for receipt"),
         }),
         execute: async (props) => {
           const session = await auth();
@@ -103,20 +114,26 @@ export async function POST(request: Request) {
         description:
           "User will enter credentials to authorize donation payment, wait for user to respond when they are done",
         parameters: z.object({
-          donationId: z
-            .string()
-            .describe("Unique identifier for the donation"),
+          donationId: z.string().describe("Unique identifier for the donation"),
+          charityName: z.string().describe("Name of the charity receiving the donation"),
+          bitcoinAddress: z.string().describe("Bitcoin address for donation"),
+          donationAmount: z.number().describe("Amount of BTC to donate"),
+          donationPurpose: z.string().describe("Purpose of the donation for QR code message"),
         }),
-        execute: async ({ donationId }) => {
-          return { donationId };
+        execute: async ({ donationId, charityName, bitcoinAddress, donationAmount, donationPurpose }) => {
+          return { 
+            donationId, 
+            charityName,
+            bitcoinAddress,
+            donationAmount,
+            donationPurpose
+          };
         },
       },
       verifyPayment: {
         description: "Verify donation payment status",
         parameters: z.object({
-          donationId: z
-            .string()
-            .describe("Unique identifier for the donation"),
+          donationId: z.string().describe("Unique identifier for the donation"),
         }),
         execute: async ({ donationId }) => {
           const donation = await getReservationById({ id: donationId });
@@ -131,17 +148,22 @@ export async function POST(request: Request) {
       generateDonationReceipt: {
         description: "Generate a receipt for a completed donation",
         parameters: z.object({
-          donationId: z
-            .string()
-            .describe("Unique identifier for the donation"),
-          donorName: z
-            .string()
-            .describe("Name of the donor, in title case"),
+          donationId: z.string().describe("Unique identifier for the donation"),
+          donorName: z.string().describe("Name of the donor, in title case"),
           charityName: z.string().describe("Name of the charity"),
           donationAmountInUSD: z.number().describe("Donation amount in USD"),
+          donationAmountInBTC: z.number().optional().describe("Donation amount in BTC if applicable"),
           donationDate: z.string().describe("ISO 8601 date of donation"),
-          isRecurring: z.boolean().describe("Whether this is a recurring donation"),
-          estimatedImpact: z.string().describe("Estimated impact of the donation"),
+          isRecurring: z
+            .boolean()
+            .describe("Whether this is a recurring donation"),
+          estimatedImpact: z
+            .string()
+            .describe("Estimated impact of the donation"),
+          bitcoinTxId: z
+            .string()
+            .optional()
+            .describe("Bitcoin transaction ID if paid via Bitcoin"),
         }),
         execute: async (receiptDetails) => {
           return receiptDetails;
@@ -200,6 +222,10 @@ export async function POST(request: Request) {
           matchingEnabled: z
             .boolean()
             .describe("Whether to enable donation matching if available"),
+          bitcoinPreferred: z
+            .boolean()
+            .optional()
+            .describe("Whether the user prefers to donate with Bitcoin"),
         }),
         execute: async (props) => {
           const donationDetails = await calculateDonation(props);

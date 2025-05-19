@@ -12,23 +12,23 @@ import React, {
   ChangeEvent,
 } from "react";
 import { toast } from "sonner";
-
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
 import useWindowSize from "./use-window-size";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
 
 const suggestedActions = [
   {
-    title: "Help me book a flight",
-    label: "from San Francisco to London",
-    action: "Help me book a flight from San Francisco to London",
+    title: "Recommend medical Charities.",
+    label: "Around South Africa.",
+    action:
+      "Generate search results for charities in the medical category with focus on medical and pharmaceutical innovation, limit to 4 results. Specifically around South Africa",
   },
   {
-    title: "What is the status",
-    label: "of flight BA142 flying tmrw?",
-    action: "What is the status of flight BA142 flying tmrw?",
+    title: "Which categories are there?",
+    label: "And a description of each.",
+    action: "Generate a list of common charity categories with descriptions",
   },
 ];
 

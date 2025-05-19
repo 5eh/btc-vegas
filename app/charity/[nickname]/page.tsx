@@ -1,24 +1,11 @@
-// app/charity/[nickname]/page.tsx
 "use client";
+import { Award, ExternalLink, Info, Mail, MapPin, Shield } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-import {
-  Award,
-  Bitcoin,
-  Calendar,
-  ExternalLink,
-  Info,
-  Mail,
-  MapPin,
-  Shield,
-} from "lucide-react";
-
 import charities from "../../../db/charities.json";
 
-// Define the Charity type to avoid TypeScript errors
 interface Charity {
   id: number;
   image: string;
@@ -121,11 +108,11 @@ export default function CharityPage() {
             </div>
           </div>
 
-          <div className="w-32 h-32 md:w-40 md:h-40 overflow-hidden bg-gray-800 mx-4  z-50">
+          <div className="size-32 md:size-40 overflow-hidden bg-gray-800 mx-4  z-50">
             <img
               src={charity.image}
               alt={charity.title}
-              className="w-full h-full object-cover border border-primary object-cover"
+              className="size-full object-cover border border-primary"
             />
             <div className="flex-1 flex pt-12 flex-wrap justify-end gap-2">
               {charity.tags.map((tag, index) => (

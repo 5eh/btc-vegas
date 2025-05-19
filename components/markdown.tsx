@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Label } from "@radix-ui/react-label"
+import { Label } from "@radix-ui/react-label";
+import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MarkdownEditorProps {
-  value: string
-  onChange: (value: string) => void
-  label?: string
-  placeholder?: string
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+  placeholder?: string;
 }
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   value,
   onChange,
   label = "Write your message",
-  placeholder = "Write your markdown here..."
+  placeholder = "Write your markdown here...",
 }) => {
-  const [isPreview, setIsPreview] = useState(false)
+  const [isPreview, setIsPreview] = useState(false);
 
   return (
     <div className="w-full space-y-2">
@@ -28,7 +28,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           onClick={() => setIsPreview(!isPreview)}
           className="text-sm text-primary hover:text-primary/80 transition-colors"
         >
-          {isPreview ? 'Edit' : 'Preview'}
+          {isPreview ? "Edit" : "Preview"}
         </button>
       </div>
 
@@ -36,7 +36,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         {isPreview ? (
           <div className="p-4 prose prose-invert max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {value || '*No content yet*'}
+              {value || "*No content yet*"}
             </ReactMarkdown>
           </div>
         ) : (
@@ -44,16 +44,17 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full h-full min-h-[200px] bg-transparent p-4 outline-none resize-y"
+            className="size-full min-h-[200px] bg-transparent p-4 outline-none resize-y"
           />
         )}
       </div>
 
       <div className="text-sm text-gray-400">
-        Supports markdown features like **bold**, *italic*, [links](https://example.com), and more.
+        Supports markdown features like **bold**, *italic*,
+        [links](https://example.com), and more.
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MarkdownEditor
+export default MarkdownEditor;

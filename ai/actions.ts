@@ -1,137 +1,105 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-
 import { geminiFlashModel } from ".";
 
-export async function generateSampleFlightStatus({
-  flightNumber,
-  date,
-}: {
-  flightNumber: string;
-  date: string;
-}) {
-  const { object: flightStatus } = await generateObject({
+export async function getCharityCategories() {
+  const { object: categories } = await generateObject({
     model: geminiFlashModel,
-    prompt: `Flight status for flight number ${flightNumber} on ${date}`,
-    schema: z.object({
-      flightNumber: z.string().describe("Flight number, e.g., BA123, AA31"),
-      departure: z.object({
-        cityName: z.string().describe("Name of the departure city"),
-        airportCode: z.string().describe("IATA code of the departure airport"),
-        airportName: z.string().describe("Full name of the departure airport"),
-        timestamp: z.string().describe("ISO 8601 departure date and time"),
-        terminal: z.string().describe("Departure terminal"),
-        gate: z.string().describe("Departure gate"),
-      }),
-      arrival: z.object({
-        cityName: z.string().describe("Name of the arrival city"),
-        airportCode: z.string().describe("IATA code of the arrival airport"),
-        airportName: z.string().describe("Full name of the arrival airport"),
-        timestamp: z.string().describe("ISO 8601 arrival date and time"),
-        terminal: z.string().describe("Arrival terminal"),
-        gate: z.string().describe("Arrival gate"),
-      }),
-      totalDistanceInMiles: z
-        .number()
-        .describe("Total flight distance in miles"),
-    }),
-  });
-
-  return flightStatus;
-}
-
-export async function generateSampleFlightSearchResults({
-  origin,
-  destination,
-}: {
-  origin: string;
-  destination: string;
-}) {
-  const { object: flightSearchResults } = await generateObject({
-    model: geminiFlashModel,
-    prompt: `Generate search results for flights from ${origin} to ${destination}, limit to 4 results`,
+    prompt: `Generate a list of common charity categories with descriptions`,
     output: "array",
     schema: z.object({
-      id: z
+      id: z.string().describe("Unique identifier for the category"),
+      name: z.string().describe("Name of the charity category"),
+      description: z.string().describe("Brief description of the category"),
+      popularCauses: z
+        .array(z.string())
+        .describe("Popular causes within this category"),
+      iconName: z
         .string()
-        .describe("Unique identifier for the flight, like BA123, AA31, etc."),
-      departure: z.object({
-        cityName: z.string().describe("Name of the departure city"),
-        airportCode: z.string().describe("IATA code of the departure airport"),
-        timestamp: z.string().describe("ISO 8601 departure date and time"),
-      }),
-      arrival: z.object({
-        cityName: z.string().describe("Name of the arrival city"),
-        airportCode: z.string().describe("IATA code of the arrival airport"),
-        timestamp: z.string().describe("ISO 8601 arrival date and time"),
-      }),
-      airlines: z.array(
-        z.string().describe("Airline names, e.g., American Airlines, Emirates"),
-      ),
-      priceInUSD: z.number().describe("Flight price in US dollars"),
-      numberOfStops: z.number().describe("Number of stops during the flight"),
+        .describe("Name of an icon that represents this category"),
     }),
   });
 
-  return { flights: flightSearchResults };
+  return { categories };
 }
 
-export async function generateSampleSeatSelection({
-  flightNumber,
+export async function generateCharityRecommendations({
+  userInterests,
+  location,
+  donationAmount,
 }: {
-  flightNumber: string;
+  userInterests: string[];
+  location?: string;
+  donationAmount?: number;
 }) {
-  const { object: rows } = await generateObject({
+  const { object: recommendations } = await generateObject({
     model: geminiFlashModel,
-    prompt: `Simulate available seats for flight number ${flightNumber}, 6 seats on each row and 5 rows in total, adjust pricing based on location of seat`,
+    prompt: `Recommend charities based on these user preferences: interests - ${userInterests.join(", ")}, location - ${location || "any"}, donation amount - ${donationAmount || "any"}`,
     output: "array",
-    schema: z.array(
-      z.object({
-        seatNumber: z.string().describe("Seat identifier, e.g., 12A, 15C"),
-        priceInUSD: z
-          .number()
-          .describe("Seat price in US dollars, less than $99"),
-        isAvailable: z
-          .boolean()
-          .describe("Whether the seat is available for booking"),
-      }),
-    ),
-  });
-
-  return { seats: rows };
-}
-
-export async function generateReservationPrice(props: {
-  seats: string[];
-  flightNumber: string;
-  departure: {
-    cityName: string;
-    airportCode: string;
-    timestamp: string;
-    gate: string;
-    terminal: string;
-  };
-  arrival: {
-    cityName: string;
-    airportCode: string;
-    timestamp: string;
-    gate: string;
-    terminal: string;
-  };
-  passengerName: string;
-}) {
-  const { object: reservation } = await generateObject({
-    model: geminiFlashModel,
-    prompt: `Generate price for the following reservation \n\n ${JSON.stringify(props, null, 2)}`,
-    // Add function to convert BTC price to USD
     schema: z.object({
-      totalPriceInUSD: z
+      id: z.string().describe("Unique identifier for the charity"),
+      name: z.string().describe("Name of the charity organization"),
+      category: z.string().describe("Primary category of the charity"),
+      description: z
+        .string()
+        .describe(
+          "Brief description of why this charity matches the user's preferences",
+        ),
+      matchScore: z
         .number()
-        .describe("Total reservation price in US dollars"),
+        .describe(
+          "Score from 1-100 indicating how well this charity matches the user's preferences",
+        ),
+      impactHighlight: z
+        .string()
+        .describe("Highlight of the potential impact of a donation"),
     }),
   });
 
-  return reservation;
+  return { recommendations };
+}
+
+export async function getDonationImpactReport({
+  charityId,
+  donationAmountInUSD,
+  timeframe,
+}: {
+  charityId: string;
+  donationAmountInUSD: number;
+  timeframe: string;
+}) {
+  const { object: impactReport } = await generateObject({
+    model: geminiFlashModel,
+    prompt: `Generate an impact report for a ${donationAmountInUSD} USD donation to charity ${charityId} over ${timeframe}`,
+    schema: z.object({
+      summary: z.string().describe("Summary of the donation's impact"),
+      metrics: z.array(
+        z.object({
+          name: z.string().describe("Name of the impact metric"),
+          value: z.string().describe("Quantified impact value"),
+          description: z
+            .string()
+            .describe("Description of what this metric means"),
+        }),
+      ),
+      timeline: z.array(
+        z.object({
+          milestone: z.string().describe("Description of an impact milestone"),
+          timeframe: z.string().describe("When this impact will be achieved"),
+        }),
+      ),
+      comparisons: z
+        .array(z.string())
+        .describe("Comparisons to help understand the impact scale"),
+      sustainabilityScore: z
+        .number()
+        .describe(
+          "Score from 1-100 indicating the sustainability of this impact",
+        ),
+    }),
+  });
+
+  return impactReport;
 }
 
 export async function findCharities({
@@ -217,6 +185,9 @@ export async function getCharityDetails({ charityId }: { charityId: string }) {
         }),
       ),
       websiteUrl: z.string().describe("URL to the charity's website"),
+      bitcoinAddress: z
+        .string()
+        .describe("Bitcoin address for direct donations"),
       taxDeductible: z
         .boolean()
         .describe("Whether donations are tax-deductible"),
@@ -265,6 +236,12 @@ export async function calculateDonation({
       totalDonationInBTC: z
         .number()
         .describe("Total donation amount converted to Bitcoin"),
+      bitcoinAddress: z
+        .string()
+        .describe("Bitcoin address for receiving the donation"),
+      donationPurpose: z
+        .string()
+        .describe("Purpose of the donation, suitable for QR code message"),
       estimatedImpact: z
         .string()
         .describe("Estimated impact description based on donation amount"),

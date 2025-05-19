@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Label } from "@radix-ui/react-label";
-import { useCountries } from "use-react-countries";
 import { isCompanyEmail } from "company-email-validator";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+// @ts-ignore
+import { useCountries } from "use-react-countries";
 import MarkdownEditor from "@/components/markdown";
+import { Button } from "@/components/ui/button";
 
 const Page = () => {
   const [isMounted, setIsMounted] = useState(false);

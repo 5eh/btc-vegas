@@ -4,9 +4,7 @@ import { differenceInMinutes } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-
 import { fetcher } from "@/lib/utils";
-
 import { CheckCircle, InfoIcon } from "../custom/icons";
 import { Input } from "../ui/input";
 

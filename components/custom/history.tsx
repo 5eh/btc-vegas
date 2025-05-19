@@ -8,17 +8,8 @@ import { User } from "next-auth";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-
 import { Chat } from "@/db/schema";
 import { fetcher, getTitleFromChat } from "@/lib/utils";
-
-import {
-  InfoIcon,
-  MenuIcon,
-  MoreHorizontalIcon,
-  PencilEditIcon,
-  TrashIcon,
-} from "./icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +34,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "../ui/sheet";
+import {
+  InfoIcon,
+  MenuIcon,
+  MoreHorizontalIcon,
+  PencilEditIcon,
+  TrashIcon,
+} from "./icons";
 
 export const History = ({ user }: { user: User | undefined }) => {
   const { id } = useParams();

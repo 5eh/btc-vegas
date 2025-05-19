@@ -1,11 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-
 import { auth, signOut } from "@/app/(auth)/auth";
-
-import { History } from "./history";
-import { SlashIcon } from "./icons";
-import { ThemeToggle } from "./theme-toggle";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -13,6 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { History } from "./history";
+import { SlashIcon } from "./icons";
+import { ThemeToggle } from "./theme-toggle";
 
 export const Navbar = async () => {
   let session = await auth();
