@@ -13,7 +13,7 @@ import {
   Organization,
 } from "./schema";
 
-let client = postgres(`${process.env.POSTGRES_URL}?sslmode=require`);
+let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
 let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
