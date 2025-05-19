@@ -1,4 +1,3 @@
-gudeez, [5/19/2025 5:47 PM]
 import "server-only";
 
 import { genSaltSync, hashSync } from "bcrypt-ts";
@@ -11,7 +10,7 @@ import { user, chat, User, reservation, organization, Organization } from "./sch
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
-let client = postgres(${process.env.POSTGRES_URL!}?sslmode=require);
+let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
 let db = drizzle(client);
 
 export async function getUser(email: string): Promise<Array<User>> {
@@ -161,7 +160,6 @@ export async function getOrganizationById({ id }: { id: string }) {
   }
 }
 
-gudeez, [5/19/2025 5:47 PM]
 export async function getAllOrganizations() {
   try {
     return await db.select().from(organization).orderBy(desc(organization.createdAt));
