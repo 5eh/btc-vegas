@@ -23,7 +23,7 @@ export function AuthForm({
         <Input
           id="email"
           name="email"
-          className="bg-muted text-md md:text-sm border-none"
+          className="bg-transparent text-md md:text-sm border-none"
           type="email"
           placeholder="user@acme.com"
           autoComplete="email"

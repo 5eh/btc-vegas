@@ -4,12 +4,8 @@ import { genSaltSync, hashSync } from "bcrypt-ts";
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-
 import { user, chat, User, reservation } from "./schema";
 
-// Optionally, if not using email/pass login, you can
-// use the Drizzle adapter for Auth.js / NextAuth
-// https://authjs.dev/reference/adapter/drizzle
 let client = postgres(`${process.env.POSTGRES_URL!}?sslmode=require`);
 let db = drizzle(client);
 
@@ -21,6 +17,8 @@ export async function getUser(email: string): Promise<Array<User>> {
     throw error;
   }
 }
+
+// Add export function using CRUD
 
 export async function createUser(email: string, password: string) {
   let salt = genSaltSync(10);

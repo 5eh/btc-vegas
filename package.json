@@ -8,7 +8,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pocket": "cd pocket && ./pocketbase serve",
     "find-unused": "ts-prune -p tsconfig.json"
   },
   "dependencies": {
