@@ -3,6 +3,7 @@
 import { Label } from "@radix-ui/react-label";
 import { isCompanyEmail } from "company-email-validator";
 import { Check, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useCountries } from "use-react-countries";
 import MarkdownEditor from "@/components/markdown";
@@ -22,8 +23,10 @@ const steps = [
 interface FormData {
   nickname: string;
   image: string;
+  imageFile?: File | null;
   title: string;
   banner: string;
+  bannerFile?: File | null;
   mission: string;
   tags: string[];
   verified: boolean;
@@ -41,6 +44,29 @@ interface FormData {
   customMessage: string;
 }
 
+// This type matches the API route's expected submission data
+interface OrganizationSubmission {
+  nickname: string;
+  image: string;
+  title: string;
+  banner: string;
+  mission: string;
+  tags: string[];
+  bgGradient: string;
+  bitcoinAddress: string;
+  location: string;
+  fullContext: string;
+  website: string;
+  email: string;
+  startDate: string;
+  registrationNumber: string;
+  president: string;
+  founder: string;
+  customMessage: string;
+  verified: boolean;
+  premium: boolean;
+}
+
 const Page = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
@@ -49,8 +75,10 @@ const Page = () => {
   const [formData, setFormData] = useState<FormData>({
     nickname: "",
     image: "",
+    imageFile: null,
     title: "",
     banner: "",
+    bannerFile: null,
     mission: "",
     tags: [],
     verified: false,
@@ -74,24 +102,82 @@ const Page = () => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target as HTMLInputElement;
 
-    if (name === "email") {
-      setEmailError(
-        !isCompanyEmail(value) ? "Please enter a valid company email" : "",
+    if (type === "file") {
+      // File inputs are now handled by separate onChange handlers
+      // for image and banner fields
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+
+      if (name === "email") {
+        setEmailError(
+          !isCompanyEmail(value) ? "Please enter a valid company email" : "",
+        );
+      }
+    }
+  };
+
+  // Function to handle image upload to ImgBB
+  const uploadImageToImgBB = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_CONNECTION}`,
+        {
+          method: "POST",
+          body: formData,
+        },
       );
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload image: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      // Return the direct image URL
+      return data.data.url;
+    } catch (error) {
+      console.error("Image upload error:", error);
+      throw error;
     }
   };
 
   const handleSubmit = async () => {
     try {
+      // Images have already been uploaded to ImgBB when selected
+      // We just need to prepare the submission data
+      const submissionData: OrganizationSubmission = {
+        nickname: formData.nickname,
+        image: formData.image,
+        title: formData.title,
+        banner: formData.banner,
+        mission: formData.mission,
+        tags: formData.tags,
+        verified: formData.verified,
+        premium: formData.premium,
+        bgGradient: formData.bgGradient,
+        bitcoinAddress: formData.bitcoinAddress,
+        location: formData.location,
+        fullContext: formData.fullContext,
+        website: formData.website,
+        email: formData.email,
+        startDate: formData.startDate,
+        registrationNumber: formData.registrationNumber,
+        president: formData.president,
+        founder: formData.founder,
+        customMessage: formData.customMessage,
+      };
+
+      // Submit the form data to the API
       const response = await fetch("/api/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
 
       if (!response.ok) {
@@ -99,9 +185,16 @@ const Page = () => {
       }
 
       // Handle success (redirect or show success message)
+      alert("Organization submitted successfully!");
+
+      // You could add navigation to a success page here
+      // For example: window.location.href = "/success";
     } catch (error) {
       console.error("Submission error:", error);
       // Handle error (show error message)
+      alert(`Error submitting organization: ${error instanceof Error ? error.message : String(error)}`);
+      // Reset to current step in case of error
+      setCurrentStep(steps.length);
     }
   };
 
@@ -195,8 +288,46 @@ const Page = () => {
                 id="image"
                 name="image"
                 className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                onChange={handleInputChange}
+                accept="image/*"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    // Set temporary URL for preview
+                    setFormData((prev) => ({
+                      ...prev,
+                      imageFile: file,
+                      image: URL.createObjectURL(file)
+                    }));
+
+                    try {
+                      // Upload to ImgBB immediately
+                      const imgUrl = await uploadImageToImgBB(file);
+                      setFormData((prev) => ({
+                        ...prev,
+                        image: imgUrl,
+                      }));
+                    } catch (error) {
+                      console.error("Error uploading image:", error);
+                    }
+                  }
+                }}
               />
+              {formData.image && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-400 break-all">
+                    Image URL: {formData.image}
+                  </p>
+                  <div className="mt-2 h-32 relative rounded-md overflow-hidden">
+                    <Image
+                      src={formData.image}
+                      alt="Preview"
+                      fill
+                      className="object-contain"
+                      unoptimized={formData.image.startsWith('blob:')}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="banner">Banner Image</Label>
@@ -205,8 +336,46 @@ const Page = () => {
                 id="banner"
                 name="banner"
                 className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                onChange={handleInputChange}
+                accept="image/*"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    // Set temporary URL for preview
+                    setFormData((prev) => ({
+                      ...prev,
+                      bannerFile: file,
+                      banner: URL.createObjectURL(file),
+                    }));
+
+                    try {
+                      // Upload to ImgBB immediately
+                      const imgUrl = await uploadImageToImgBB(file);
+                      setFormData((prev) => ({
+                        ...prev,
+                        banner: imgUrl,
+                      }));
+                    } catch (error) {
+                      console.error("Error uploading banner:", error);
+                    }
+                  }
+                }}
               />
+              {formData.banner && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-400 break-all">
+                    Banner URL: {formData.banner}
+                  </p>
+                  <div className="mt-2 h-32 w-full relative rounded-md overflow-hidden">
+                    <Image
+                      src={formData.banner}
+                      alt="Banner Preview"
+                      fill
+                      className="object-cover"
+                      unoptimized={formData.banner.startsWith('blob:')}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="bgGradient">Background Gradient</Label>
@@ -364,6 +533,18 @@ const Page = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  // Clear object URLs when component unmounts to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (typeof formData.image === 'string' && formData.image.startsWith('blob:')) {
+        URL.revokeObjectURL(formData.image);
+      }
+      if (typeof formData.banner === 'string' && formData.banner.startsWith('blob:')) {
+        URL.revokeObjectURL(formData.banner);
+      }
+    };
+  }, [formData.image, formData.banner]);
 
   if (!isMounted) {
     return null;
@@ -399,7 +580,7 @@ const Page = () => {
                     )}
                   >
                     {currentStep > step.id ? (
-                      <Check className="w-5 h-5" />
+                      <Check className="size-5" />
                     ) : (
                       step.id
                     )}
@@ -445,7 +626,7 @@ const Page = () => {
             <Button
               onClick={() => {
                 if (currentStep === steps.length) {
-                  handleSubmit();
+                  void handleSubmit();
                 } else {
                   setCurrentStep((prev) => prev + 1);
                 }
@@ -453,7 +634,7 @@ const Page = () => {
             >
               {currentStep === steps.length ? "Submit" : "Next"}
               {currentStep !== steps.length && (
-                <ChevronRight className="ml-2 h-4 w-4" />
+                <ChevronRight className="ml-2 size-4" />
               )}
             </Button>
           </div>

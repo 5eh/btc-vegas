@@ -35,12 +35,19 @@ export async function POST(request: NextRequest) {
     }
 
     const data: OrganizationSubmission = await request.json();
+    console.log("Received data:", data);
 
-    // Basic validation
-    if (!data.title || !data.email || !data.bitcoinAddress) {
+    // Required fields validation
+    const requiredFields = ['title', 'email', 'bitcoinAddress', 'nickname', 'mission'] as const;
+    const missingFields = requiredFields.filter(field => !data[field]);
+    
+    if (missingFields.length > 0) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
+        { 
+          error: "Missing required fields",
+          fields: missingFields 
+        },
+        { status: 400 }
       );
     }
 
@@ -49,22 +56,34 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(data.email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    // Validate bitcoin address format (basic check)
-    const bitcoinRegex = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
+    const bitcoinRegex = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-zA-HJ-NP-Z0-9]{39,59}$/;
     if (!bitcoinRegex.test(data.bitcoinAddress)) {
       return NextResponse.json(
         { error: "Invalid Bitcoin address format" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    const result = await createOrganization({
+
+    if (!Array.isArray(data.tags)) {
+      data.tags = [];
+    }
+
+    const organizationData = {
       ...data,
-    });
+      verified: false,
+      premium: false,
+      tags: data.tags || [],
+      startDate: data.startDate || new Date().toISOString(),
+    };
+
+    console.log("Processed data for DB:", organizationData);
+
+    const result = await createOrganization(organizationData);
 
     return NextResponse.json(
       { message: "Organization created successfully", data: result },
@@ -73,8 +92,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Failed to create organization:", error);
     return NextResponse.json(
-      { error: "Failed to create organization" },
-      { status: 500 },
+      { 
+        error: "Failed to create organization",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
     );
   }
 }

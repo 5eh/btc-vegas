@@ -1,11 +1,11 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-import { geminiFlashModel } from ".";
-import { 
-  getAllOrganizations, 
-  getOrganizationById, 
-  getOrganizationByNickname 
+import {
+  getAllOrganizations,
+  getOrganizationById,
+  getOrganizationByNickname,
 } from "@/db/queries";
+import { geminiFlashModel } from ".";
 
 export async function getCharityCategories() {
   const { object: categories } = await generateObject({
@@ -110,18 +110,18 @@ export async function getDonationImpactReport({
 export async function getOrganizationsList() {
   // Fetch actual organizations from the database
   const dbOrganizations = await getAllOrganizations();
-  
+
   // Process the organizations to handle tags and boolean values
-  const organizations = dbOrganizations.map(org => ({
+  const organizations = dbOrganizations.map((org) => ({
     ...org,
-    tags: typeof org.tags === 'string' ? JSON.parse(org.tags) : org.tags,
+    tags: typeof org.tags === "string" ? JSON.parse(org.tags) : org.tags,
     verified: !!org.verified,
     premium: !!org.premium,
     fullContext: org.fullContext || "",
     president: org.president || "",
     founder: org.founder || "",
     customMessage: org.customMessage || "",
-    originDate: org.originDate || new Date().toISOString()
+    originDate: org.originDate || new Date().toISOString(),
   }));
 
   // Use AI to enhance the organization list with additional context
@@ -134,21 +134,34 @@ export async function getOrganizationsList() {
       nickname: z.string().describe("Organization's short name/nickname"),
       title: z.string().describe("Full organization name"),
       mission: z.string().describe("Organization's mission statement"),
-      tags: z.array(z.string()).describe("Categories and tags for the organization"),
+      tags: z
+        .array(z.string())
+        .describe("Categories and tags for the organization"),
       verified: z.boolean().describe("Whether the organization is verified"),
-      premium: z.boolean().describe("Whether the organization has premium status"),
+      premium: z
+        .boolean()
+        .describe("Whether the organization has premium status"),
       impact: z.string().describe("Description of the organization's impact"),
       location: z.string().optional().describe("Organization's location"),
-      bitcoinAddress: z.string().optional().describe("Bitcoin donation address")
-    })
+      bitcoinAddress: z
+        .string()
+        .optional()
+        .describe("Bitcoin donation address"),
+    }),
   });
 
   return { organizations: enhancedOrgs };
 }
 
-export async function getOrganizationDetails({ orgId, nickname }: { orgId?: string, nickname?: string }) {
+export async function getOrganizationDetails({
+  orgId,
+  nickname,
+}: {
+  orgId?: string;
+  nickname?: string;
+}) {
   // Fetch organization from database based on id or nickname
-  const organization = orgId 
+  const organization = orgId
     ? await getOrganizationById({ id: orgId })
     : await getOrganizationByNickname({ nickname: nickname! });
 
@@ -159,9 +172,12 @@ export async function getOrganizationDetails({ orgId, nickname }: { orgId?: stri
   // Process the organization data
   const processedOrg = {
     ...organization,
-    tags: typeof organization.tags === 'string' ? JSON.parse(organization.tags) : organization.tags,
+    tags:
+      typeof organization.tags === "string"
+        ? JSON.parse(organization.tags)
+        : organization.tags,
     verified: !!organization.verified,
-    premium: !!organization.premium
+    premium: !!organization.premium,
   };
 
   // Use AI to enhance the organization details
@@ -183,18 +199,31 @@ export async function getOrganizationDetails({ orgId, nickname }: { orgId?: stri
       fullContext: z.string().describe("Detailed description and context"),
       website: z.string().optional().describe("Organization's website"),
       email: z.string().optional().describe("Contact email"),
-      originDate: z.string().optional().describe("Organization's founding date"),
-      registrationNumber: z.string().optional().describe("Official registration number"),
+      originDate: z
+        .string()
+        .optional()
+        .describe("Organization's founding date"),
+      registrationNumber: z
+        .string()
+        .optional()
+        .describe("Official registration number"),
       president: z.string().optional().describe("Organization's president"),
       founder: z.string().optional().describe("Organization's founder"),
-      bitcoinAddress: z.string().optional().describe("Bitcoin donation address"),
+      bitcoinAddress: z
+        .string()
+        .optional()
+        .describe("Bitcoin donation address"),
       customMessage: z.string().optional().describe("Custom donation message"),
-      impactMetrics: z.array(z.object({
-        metric: z.string().describe("Impact metric name"),
-        value: z.string().describe("Impact metric value"),
-        description: z.string().describe("Description of the impact")
-      })).optional()
-    })
+      impactMetrics: z
+        .array(
+          z.object({
+            metric: z.string().describe("Impact metric name"),
+            value: z.string().describe("Impact metric value"),
+            description: z.string().describe("Description of the impact"),
+          }),
+        )
+        .optional(),
+    }),
   });
 
   return enhancedDetails;

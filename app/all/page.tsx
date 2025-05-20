@@ -173,7 +173,7 @@ const Page = () => {
                         }
                         alt={organization.title}
                         fill
-                        className={`object-cover contrast-125 transition-all duration-700 ease-in-out ${
+                        className={`object-cover bg-black contrast-125 transition-all duration-700 ease-in-out ${
                           (spotlightId === organization.id &&
                             blurEnabled &&
                             !searchActive) ||
