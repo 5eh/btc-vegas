@@ -62,7 +62,8 @@ The solutions that we came up with to solve these problems:
 
 1.  `https://github.com/5eh/btc-vegas/tree/main`
 2.  `pnpm install`
-3.  `pnpm run dev`
+3.  Add custom `.env.local`, fill out `https://github.com/5eh/btc-vegas/blob/main/.gitignore`
+4.  `pnpm run dev`
 
 ### Deep dive
 
