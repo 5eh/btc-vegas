@@ -47,8 +47,12 @@ export async function POST(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { id, messages, organizations: requestOrgs }: { 
-    id: string; 
+  const {
+    id,
+    messages,
+    organizations: requestOrgs,
+  }: {
+    id: string;
     messages: Array<Message>;
     organizations?: Organization[];
   } = await request.json();
@@ -60,8 +64,8 @@ export async function POST(request: Request) {
   let organizations: Organization[] = [];
 
   try {
-    let organizations = await getAllOrganizations();
-    organizations = organizations.map((org) => ({
+    const fetchedOrgs = await getAllOrganizations();
+    let organizations = fetchedOrgs.map((org) => ({
       ...org,
       tags:
         typeof org.tags === "string"
@@ -75,7 +79,7 @@ export async function POST(request: Request) {
       president: org.president || "",
       founder: org.founder || "",
       customMessage: org.customMessage || "",
-      originDate: org.originDate || new Date().toISOString()
+      originDate: org.originDate || new Date().toISOString(),
     }));
 
     console.log("Fetched organizations:", organizations);
@@ -111,7 +115,7 @@ export async function POST(request: Request) {
           president: org.president,
           founder: org.founder,
           banner: org.banner,
-          customMessage: org.customMessage
+          customMessage: org.customMessage,
         })),
         null,
         2,

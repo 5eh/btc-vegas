@@ -73,9 +73,6 @@ const SearchCharities = ({ results }: { results?: any }) => {
               <span className="text-xs bg-primary/30 text-primary px-2 py-0.5 border-primary border">
                 {charity.impactMetric}
               </span>
-              <span className="text-xs">
-                Min: ${charity.minimumDonationInUSD}
-              </span>
             </div>
           </div>
         ))}
