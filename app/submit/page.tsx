@@ -2,12 +2,14 @@
 
 import { Label } from "@radix-ui/react-label";
 import { isCompanyEmail } from "company-email-validator";
+import { Check, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCountries } from "use-react-countries";
 import MarkdownEditor from "@/components/markdown";
 import { Button } from "@/components/ui/button";
+import GradientPopup from "@/components/ui/gradient-popup";
+import Preview from "@/components/ui/preview";
 import { cn } from "@/lib/utils";
-import { Check, ChevronRight } from "lucide-react";
 
 const steps = [
   { id: 1, name: "Basic Information" },
@@ -45,28 +47,27 @@ const Page = () => {
   const { countries } = useCountries();
   const [emailError, setEmailError] = useState("");
   const [formData, setFormData] = useState<FormData>({
-    nickname: "Watson",
-    image:
-      "https://images.unsplash.com/photo-1747599309107-20504ba6b8dd?q=80&w=2676&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "Walter Ego Organization",
-    banner:
-      "https://images.unsplash.com/photo-1747599309107-20504ba6b8dd?q=80&w=2676&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    mission: "Sex, Drugs, Rock n Roll",
-    tags: ["hello", "goodbye", "howdy?"],
+    nickname: "",
+    image: "",
+    title: "",
+    banner: "",
+    mission: "",
+    tags: [],
     verified: false,
     premium: true,
-    bgGradient: "from-red-300 to-blue-400",
-    bitcoinAddress: "1FfmbHfnpaZjKFvyi1okTjJJusN455paPH",
-    location: "Omaha, Nebraska",
-    fullContext: "Business busiess business!",
-    website: "https://arthurlabs.net",
-    email: "watson@arthurlabs.net",
+    bgGradient: "",
+    bitcoinAddress: "",
+    location: "",
+    fullContext: "",
+    website: "",
+    email: "",
     startDate: "",
-    registrationNumber: "FEna9bea8",
-    president: "Watson Lewis-Rodriguez",
-    founder: "Watson Lewis-Rodriguez",
-    customMessage: "Hello",
+    registrationNumber: "",
+    president: "",
+    founder: "",
+    customMessage: "",
   });
+  const [isGradientPopupOpen, setIsGradientPopupOpen] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -209,16 +210,54 @@ const Page = () => {
             </div>
             <div>
               <Label htmlFor="bgGradient">Background Gradient</Label>
-              <input
-                type="text"
-                id="bgGradient"
-                name="bgGradient"
-                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                value={formData.bgGradient}
-                onChange={handleInputChange}
-                placeholder="e.g., linear-gradient(to right, #00ff87, #60efff)"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  id="bgGradient"
+                  name="bgGradient"
+                  className="flex-1 mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                  value={formData.bgGradient}
+                  onChange={handleInputChange}
+                  placeholder="Select gradient using picker"
+                  readOnly
+                />
+                <Button
+                  type="button"
+                  onClick={() => setIsGradientPopupOpen(true)}
+                  className="mt-1"
+                >
+                  Choose
+                </Button>
+              </div>
             </div>
+            <div className="mt-8">
+              <Label>Preview</Label>
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="col-span-1">
+                  <Preview
+                    title={formData.title || "Organization Name"}
+                    mission={
+                      formData.mission ||
+                      "Your mission statement will appear here"
+                    }
+                    image={
+                      formData.image ||
+                      "https://images.unsplash.com/photo-1620778182530-703effa65a06?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGJ0Y3xlbnwwfHwwfHx8MA%3D%3D"
+                    }
+                    tags={formData.tags}
+                    gradient={formData.bgGradient}
+                  />
+                </div>
+              </div>
+            </div>
+            <GradientPopup
+              isOpen={isGradientPopupOpen}
+              onClose={() => setIsGradientPopupOpen(false)}
+              onSelect={(gradient) => {
+                setFormData((prev) => ({ ...prev, bgGradient: gradient }));
+                setIsGradientPopupOpen(false);
+              }}
+            />
             <div>
               <Label>Tags (comma-separated)</Label>
               <input
@@ -229,10 +268,13 @@ const Page = () => {
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    tags: e.target.value.split(",").map((tag) => tag.trim()),
+                    tags: e.target.value
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .slice(0, 3),
                   }))
                 }
-                placeholder="education, children, healthcare"
+                placeholder="education, children, healthcare (max 3)"
               />
             </div>
           </div>

@@ -1,7 +1,7 @@
-import { createOrganization } from "@/db/queries";
 import { NextRequest, NextResponse } from "next/server";
+import { createOrganization } from "@/db/queries";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 interface OrganizationSubmission {
   nickname: string;
@@ -21,6 +21,8 @@ interface OrganizationSubmission {
   president: string;
   founder: string;
   customMessage: string;
+  verified: boolean;
+  premium: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (!request.body) {
       return NextResponse.json(
         { error: "Request body is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
     if (!data.title || !data.email || !data.bitcoinAddress) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(data.email)) {
       return NextResponse.json(
         { error: "Invalid email format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -56,24 +58,23 @@ export async function POST(request: NextRequest) {
     if (!bitcoinRegex.test(data.bitcoinAddress)) {
       return NextResponse.json(
         { error: "Invalid Bitcoin address format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Create organization
     const result = await createOrganization({
       ...data,
     });
 
     return NextResponse.json(
       { message: "Organization created successfully", data: result },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Failed to create organization:", error);
     return NextResponse.json(
       { error: "Failed to create organization" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
