@@ -6,28 +6,67 @@ import { useState, useEffect } from "react";
 import { useCountries } from "use-react-countries";
 import MarkdownEditor from "@/components/markdown";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Check, ChevronRight } from "lucide-react";
 
-interface Country {
-  id: string;
-  name: string;
+const steps = [
+  { id: 1, name: "Basic Information" },
+  { id: 2, name: "Organization Details" },
+  { id: 3, name: "Media & Tags" },
+  { id: 4, name: "Leadership & Contact" },
+  { id: 5, name: "Review & Submit" },
+];
+
+interface FormData {
+  nickname: string;
+  image: string;
+  title: string;
+  banner: string;
+  mission: string;
+  tags: string[];
+  verified: boolean;
+  premium: boolean;
+  bgGradient: string;
+  bitcoinAddress: string;
+  location: string;
+  fullContext: string;
+  website: string;
+  email: string;
+  startDate: string;
+  registrationNumber: string;
+  president: string;
+  founder: string;
+  customMessage: string;
 }
 
 const Page = () => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
   const { countries } = useCountries();
-  const [formData, setFormData] = useState({
-    orgName: "",
-    orgPicture: "",
-    orgBanner: "",
-    tagline: "",
-    businessContext: "",
-    email: "",
-    country: "",
-    state: "",
-    tags: ["", "", ""],
-    aWord: "",
-  });
   const [emailError, setEmailError] = useState("");
+  const [formData, setFormData] = useState<FormData>({
+    nickname: "Watson",
+    image:
+      "https://images.unsplash.com/photo-1747599309107-20504ba6b8dd?q=80&w=2676&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    title: "Walter Ego Organization",
+    banner:
+      "https://images.unsplash.com/photo-1747599309107-20504ba6b8dd?q=80&w=2676&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    mission: "Sex, Drugs, Rock n Roll",
+    tags: ["hello", "goodbye", "howdy?"],
+    verified: false,
+    premium: true,
+    bgGradient: "from-red-300 to-blue-400",
+    bitcoinAddress: "1FfmbHfnpaZjKFvyi1okTjJJusN455paPH",
+    location: "Omaha, Nebraska",
+    fullContext: "Business busiess business!",
+    website: "https://arthurlabs.net",
+    email: "watson@arthurlabs.net",
+    startDate: "",
+    registrationNumber: "FEna9bea8",
+    president: "Watson Lewis-Rodriguez",
+    founder: "Watson Lewis-Rodriguez",
+    customMessage: "Hello",
+  });
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -41,6 +80,242 @@ const Page = () => {
       setEmailError(
         !isCompanyEmail(value) ? "Please enter a valid company email" : "",
       );
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit organization");
+      }
+
+      // Handle success (redirect or show success message)
+    } catch (error) {
+      console.error("Submission error:", error);
+      // Handle error (show error message)
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Organization Name</Label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.title}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="nickname">Nickname (URL Identifier)</Label>
+              <input
+                type="text"
+                id="nickname"
+                name="nickname"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.nickname}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="mission">Mission Statement</Label>
+              <textarea
+                id="mission"
+                name="mission"
+                rows={4}
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.mission}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="fullContext">Full Organization Context</Label>
+              <textarea
+                id="fullContext"
+                name="fullContext"
+                rows={6}
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.fullContext}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="bitcoinAddress">Bitcoin Address</Label>
+              <input
+                type="text"
+                id="bitcoinAddress"
+                name="bitcoinAddress"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.bitcoinAddress}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.location}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="image">Organization Logo</Label>
+              <input
+                type="file"
+                id="image"
+                name="image"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="banner">Banner Image</Label>
+              <input
+                type="file"
+                id="banner"
+                name="banner"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="bgGradient">Background Gradient</Label>
+              <input
+                type="text"
+                id="bgGradient"
+                name="bgGradient"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.bgGradient}
+                onChange={handleInputChange}
+                placeholder="e.g., linear-gradient(to right, #00ff87, #60efff)"
+              />
+            </div>
+            <div>
+              <Label>Tags (comma-separated)</Label>
+              <input
+                type="text"
+                id="tags"
+                name="tags"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    tags: e.target.value.split(",").map((tag) => tag.trim()),
+                  }))
+                }
+                placeholder="education, children, healthcare"
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email">Contact Email</Label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.email}
+                onChange={handleInputChange}
+              />
+              {emailError && (
+                <p className="text-red-500 text-sm mt-1">{emailError}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="website">Website</Label>
+              <input
+                type="url"
+                id="website"
+                name="website"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.website}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="president">President</Label>
+              <input
+                type="text"
+                id="president"
+                name="president"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.president}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="founder">Founder</Label>
+              <input
+                type="text"
+                id="founder"
+                name="founder"
+                className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
+                value={formData.founder}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Custom Message to Donors</Label>
+              <MarkdownEditor
+                value={formData.customMessage}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, customMessage: value }))
+                }
+                label="Your Message"
+                placeholder="Write your markdown message here..."
+              />
+            </div>
+            <div className="mt-8">
+              <h3 className="font-semibold mb-4">Review Your Information</h3>
+              <pre className="bg-white/5 p-4 rounded-lg overflow-auto">
+                {JSON.stringify(formData, null, 2)}
+              </pre>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -60,202 +335,101 @@ const Page = () => {
             Organization Submission
           </h1>
 
-          <div className="space-y-6">
-            <div className="warning-box bg-primary/10 p-4 border border-primary rounded-lg mb-6">
-              <p className="text-gray-600 dark:text-gray-200">
-                Warning: A submission fee of $30 is required to process your
-                application. This helps us develop and maintain{" "}
-                <code className="text-primary rounded-none bg-muted-foreground/15 px-1.5 py-0.5">
-                  Fund The World!
-                </code>
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="orgName">Organization Name</Label>
-                <input
-                  type="text"
-                  id="orgName"
-                  name="orgName"
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.orgName}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">Company Email</Label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-                {emailError && (
-                  <p className="text-red-500 text-sm mt-1">{emailError}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="country">Country</Label>
-                  <select
-                    id="country"
-                    name="country"
-                    className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                    value={formData.country}
-                    onChange={handleInputChange}
+          {/* Stepper */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between relative">
+              {steps.map((step, index) => (
+                <div
+                  key={step.id}
+                  className={cn(
+                    "flex items-center",
+                    index !== steps.length - 1 && "flex-1",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center border-2",
+                      currentStep > step.id
+                        ? "bg-primary border-primary text-white"
+                        : currentStep === step.id
+                          ? "border-primary text-primary"
+                          : "border-gray-600 text-gray-600",
+                    )}
                   >
-                    <option value="">Select a country</option>
-                    {countries.map((country: Country) => (
-                      <option key={country.id} value={country.id}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="state">State/Province</Label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="orgPicture">Organization Picture</Label>
-                <input
-                  type="file"
-                  id="orgPicture"
-                  name="orgPicture"
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.orgPicture}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="orgBanner">Organization Banner</Label>
-                <input
-                  type="file"
-                  id="orgBanner"
-                  name="orgBanner"
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.orgBanner}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="tagline">Tagline</Label>
-                <input
-                  type="text"
-                  id="tagline"
-                  name="tagline"
-                  className="w-full mt-1 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.tagline}
-                  onChange={handleInputChange}
-                  placeholder="15 word catchline to introduce your project."
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="businessContext" className="font-bold">
-                  Business Context
-                </Label>{" "}
-                <span className="text-gray-400/50 dark:text-gray-200/50">
-                  Please provide all the business context necessary for our
-                  donators to be able to converse and question your work
-                </span>
-                <textarea
-                  id="businessContext"
-                  name="businessContext"
-                  rows={4}
-                  className="w-full mt-2 bg-white/5 rounded border border-gray-600 p-2"
-                  value={formData.businessContext}
-                  onChange={handleInputChange}
-                  placeholder="Provide as much information as you'd like about your business..."
-                />
-              </div>
-
-              <div>
-                <Label>Custom Tags (Choose up to 3)</Label>
-                <div className="grid grid-cols-3 gap-4 mt-2">
-                  {formData.tags.map((tag, index) => (
-                    <input
-                      key={index}
-                      type="text"
-                      value={tag}
-                      onChange={(e) => {
-                        const newTags = [...formData.tags];
-                        newTags[index] = e.target.value;
-                        setFormData((prev) => ({ ...prev, tags: newTags }));
-                      }}
-                      className="w-full bg-white/5 rounded border border-gray-600 p-2"
-                      placeholder={`Tag ${index + 1}`}
+                    {currentStep > step.id ? (
+                      <Check className="w-5 h-5" />
+                    ) : (
+                      step.id
+                    )}
+                  </div>
+                  {index !== steps.length - 1 && (
+                    <div
+                      className={cn(
+                        "h-0.5 w-full mx-4",
+                        currentStep > step.id ? "bg-primary" : "bg-gray-600",
+                      )}
                     />
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-1 mt-2 relative group">
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-gray-900/80 group-hover:opacity-0 transition-opacity duration-300 ease-in-out pointer-events-none"></div>
-                  {formData.tags.map(
-                    (tag, index) =>
-                      tag && (
-                        <span
-                          key={index}
-                          className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1"
-                        >
-                          {tag}
-                        </span>
-                      ),
                   )}
                 </div>
-              </div>
-
-              <div>
-                <span className="text-gray-400/50 dark:text-gray-200/50 block mb-4">
-                  Please create a markdown format for your custom message to
-                  your possible donators! As long or short as you&apos;d like
-                </span>
-                <MarkdownEditor
-                  value={formData.aWord}
-                  onChange={(value) =>
-                    setFormData((prev) => ({ ...prev, aWord: value }))
-                  }
-                  label="A Word"
-                  placeholder="Write your markdown message here... Use **bold**, *italic*, [links](url), and more!"
-                />
-              </div>
+              ))}
             </div>
-
-            <div className="flex justify-center mt-8">
-              {isMounted && (
-                <iframe
-                  src="https://nowpayments.io/embeds/payment-widget?iid=4426600256"
-                  width="410"
-                  height="696"
-                  frameBorder="0"
-                  scrolling="no"
-                  style={{ overflowY: "hidden" }}
+            <div className="flex justify-between mt-2">
+              {steps.map((step) => (
+                <div
+                  key={step.id}
+                  className={cn(
+                    "text-xs",
+                    currentStep >= step.id ? "text-primary" : "text-gray-600",
+                  )}
                 >
-                  Can&apos;t load widget
-                </iframe>
-              )}
-            </div>
-            <div className="w-full justify-center flex">
-              <Button className="border-primary w-full" variant="outline">
-                Submit
-              </Button>
+                  {step.name}
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Form Content */}
+          {renderStepContent()}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentStep((prev) => prev - 1)}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() => {
+                if (currentStep === steps.length) {
+                  handleSubmit();
+                } else {
+                  setCurrentStep((prev) => prev + 1);
+                }
+              }}
+            >
+              {currentStep === steps.length ? "Submit" : "Next"}
+              {currentStep !== steps.length && (
+                <ChevronRight className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          {currentStep === steps.length && (
+            <div className="flex justify-center mt-8">
+              <iframe
+                src="https://nowpayments.io/embeds/payment-widget?iid=4426600256"
+                width="410"
+                height="696"
+                frameBorder="0"
+                scrolling="no"
+                style={{ overflowY: "hidden" }}
+              >
+                Can&apos;t load widget
+              </iframe>
+            </div>
+          )}
         </div>
       </div>
     </div>

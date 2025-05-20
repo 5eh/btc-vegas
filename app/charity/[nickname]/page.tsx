@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Markdown } from "@/components/custom/markdown";
 
 interface Organization {
   id: string;
@@ -30,6 +31,11 @@ interface Organization {
   updatedAt: string;
 }
 
+type ApiResponse = {
+  data?: Organization;
+  error?: string;
+};
+
 export default function CharityPage() {
   const params = useParams();
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -39,20 +45,37 @@ export default function CharityPage() {
   useEffect(() => {
     async function fetchOrganization() {
       try {
-        const nickname = params.nickname as string;
-        const response = await fetch(`/api/organization/${nickname}`);
-
-        if (!response.ok) {
-          throw new Error("Organization not found");
+        if (!params.nickname || typeof params.nickname !== "string") {
+          throw new Error("Invalid nickname parameter");
         }
 
-        const data = await response.json();
-        setOrganization(data);
+        const response = await fetch(`/api/organization/${params.nickname}`);
+        const contentType = response.headers.get("content-type");
+
+        if (!contentType?.includes("application/json")) {
+          throw new Error("Invalid server response format");
+        }
+
+        const result: ApiResponse = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.error || `HTTP error! status: ${response.status}`,
+          );
+        }
+
+        if (!result.data) {
+          throw new Error("Organization data is missing");
+        }
+
+        setOrganization(result.data);
         setError(null);
       } catch (err) {
+        console.error("Failed to fetch organization:", err);
         setError(
-          err instanceof Error ? err.message : "Failed to fetch organization",
+          err instanceof Error ? err.message : "An unexpected error occurred",
         );
+        setOrganization(null);
       } finally {
         setLoading(false);
       }
@@ -69,16 +92,19 @@ export default function CharityPage() {
     );
   }
 
-  if (error) {
+  if (error || !organization) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <h1 className="text-2xl font-bold mb-4 dark:text-white">
           Charity Not Found
         </h1>
-        <p className="mb-6 dark:text-gray-300">{error}</p>
+        <p className="mb-6 dark:text-gray-300">
+          {error || "Organization not found"}
+        </p>
         <Link
           href="/"
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          aria-label="Return to organizations list"
         >
           Return to Organizations
         </Link>
@@ -90,8 +116,8 @@ export default function CharityPage() {
     <div className="mx-auto mt-20">
       <div className="h-128 md:h-96 overflow-hidden relative">
         <Image
-          src={organization.banner}
-          alt={`${organization.title} banner`}
+          src={organization!.banner}
+          alt={`${organization!.title} banner`}
           width={1200}
           height={400}
           className="size-full object-cover"
@@ -105,15 +131,15 @@ export default function CharityPage() {
           {/* Title and Badges */}
           <div className="flex-1 pt-24">
             <h1 className="text-3xl font-bold dark:text-white mb-2">
-              {organization.title}
+              {organization!.title}
             </h1>
             <div className="flex space-x-2">
-              {organization.verified && (
+              {organization!.verified && (
                 <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-md">
                   Verified
                 </span>
               )}
-              {organization.premium && (
+              {organization!.premium && (
                 <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full shadow-md">
                   Premium
                 </span>
@@ -123,12 +149,12 @@ export default function CharityPage() {
 
           <div className="size-32 md:size-40 overflow-hidden bg-gray-800 mx-4  z-50">
             <img
-              src={organization.image}
-              alt={organization.title}
+              src={organization!.image}
+              alt={organization!.title}
               className="size-full object-cover border border-primary"
             />
             <div className="flex-1 flex pt-12 flex-wrap justify-end gap-2">
-              {organization.tags.map((tag, index) => (
+              {organization!.tags.map((tag, index) => (
                 <span
                   key={index}
                   className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-sm"
@@ -144,19 +170,25 @@ export default function CharityPage() {
       <div className=" space-y-8">
         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="break-all font-mono text-sm dark:text-gray-300">
-            {organization.bitcoinAddress}
+            {organization!.bitcoinAddress}
           </div>
           <div className="flex gap-2 ml-4">
             <button
               className="px-3 py-1 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors"
-              onClick={() => {
-                navigator.clipboard.writeText(organization.bitcoinAddress);
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    organization!.bitcoinAddress,
+                  );
+                } catch (err) {
+                  console.error("Failed to copy to clipboard:", err);
+                }
               }}
             >
               Copy
             </button>
             <a
-              href={`bitcoin:${organization.bitcoinAddress}`}
+              href={`bitcoin:${organization!.bitcoinAddress}`}
               className="px-3 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
             >
               Open
@@ -176,7 +208,7 @@ export default function CharityPage() {
                 </h2>
               </div>
               <p className="text-gray-700 dark:text-gray-300">
-                {organization.mission}
+                {organization!.mission}
               </p>
             </section>
 
@@ -186,7 +218,7 @@ export default function CharityPage() {
                 <h2 className="text-xl font-bold dark:text-white">About Us</h2>
               </div>
               <p className="text-gray-700 dark:text-gray-300">
-                {organization.fullContext}
+                {organization!.fullContext}
               </p>
             </section>
           </div>
@@ -198,7 +230,7 @@ export default function CharityPage() {
               <div className="text-right">
                 <h3 className="font-medium dark:text-white">Founded</h3>
                 <p className="text-gray-700 dark:text-gray-300">
-                  {new Date(organization.originDate).toLocaleDateString(
+                  {new Date(organization!.originDate).toLocaleDateString(
                     "en-US",
                     {
                       year: "numeric",
@@ -216,7 +248,7 @@ export default function CharityPage() {
               <div className="text-right">
                 <h3 className="font-medium dark:text-white">Location</h3>
                 <p className="text-primary blur-sm hover:transition ease-in-out hover:blur-0 hover:underline">
-                  {organization.location}
+                  {organization!.location}
                 </p>
               </div>
               <MapPin className="size-5 text-gray-600 dark:text-gray-400 ml-3 mt-0.5 shrink-0" />
@@ -227,10 +259,10 @@ export default function CharityPage() {
               <div className="text-right">
                 <h3 className="font-medium dark:text-white">Contact</h3>
                 <a
-                  href={`mailto:${organization.email}`}
+                  href={`mailto:${organization!.email}`}
                   className="text-primary blur-sm hover:transition ease-in-out hover:blur-0 "
                 >
-                  {organization.email}
+                  {organization!.email}
                 </a>
               </div>
               <Mail className="size-5 text-gray-600 dark:text-gray-400 ml-3 mt-0.5 shrink-0" />
@@ -241,12 +273,12 @@ export default function CharityPage() {
               <div className="text-right">
                 <h3 className="font-medium dark:text-white">Website</h3>
                 <a
-                  href={organization.website}
+                  href={organization!.website}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary blur-sm hover:transition ease-in-out hover:blur-0 hover:underline"
                 >
-                  {organization.website.replace(/(^\w+:|^)\/\//, "")}
+                  {organization!.website.replace(/(^\w+:|^)\/\//, "")}
                 </a>
               </div>
               <ExternalLink className="size-5 text-gray-600 dark:text-gray-400 ml-3 mt-0.5 shrink-0" />
@@ -257,7 +289,7 @@ export default function CharityPage() {
               <div className="text-right">
                 <h3 className="font-medium dark:text-white">Registration</h3>
                 <p className="text-primary blur-sm hover:transition ease-in-out hover:blur-0 ">
-                  {organization.registrationNumber}
+                  {organization!.registrationNumber}
                 </p>
               </div>
               <Award className="size-5 text-gray-600 dark:text-gray-400 ml-3 mt-0.5 shrink-0" />
@@ -268,9 +300,9 @@ export default function CharityPage() {
               <div className="text-right">
                 <h3 className="font-medium dark:text-white">Leadership</h3>
                 <p className="text-primary blur-sm hover:transition ease-in-out hover:blur-0 ">
-                  President: {organization.president}
+                  President: {organization!.president}
                   <br />
-                  Founder: {organization.founder}
+                  Founder: {organization!.founder}
                 </p>
               </div>
               <Award className="size-5 text-gray-600 dark:text-gray-400 ml-3 mt-0.5 shrink-0" />
@@ -284,9 +316,9 @@ export default function CharityPage() {
             A Word From Us
           </h2>
           <div className="prose dark:prose-invert max-w-none">
-            {organization.customMessage && (
-              <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {organization.customMessage}
+            {organization!.customMessage && (
+              <div className="text-gray-700 dark:text-gray-300">
+                <Markdown>{organization!.customMessage.replace(/\\n/g, '\n')}</Markdown>
               </div>
             )}
           </div>

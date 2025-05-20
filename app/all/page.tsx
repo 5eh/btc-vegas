@@ -4,10 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import DirectSearch from "../../components/custom/search";
-import charities from "../../db/charities.json";
 
-interface Charity {
-  id: number;
+interface Organization {
+  id: string;
   nickname: string;
   image: string;
   title: string;
@@ -22,12 +21,21 @@ interface Charity {
   president: string;
   founder: string;
   registrationNumber: string;
+  banner: string;
+  bitcoinAddress: string;
+  website: string;
+  startDate: string;
+  customMessage: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const Page = () => {
-  const [spotlightId, setSpotlightId] = useState<number | null>(null);
-  const [filteredCharities, setFilteredCharities] =
-    useState<Charity[]>(charities);
+  const [spotlightId, setSpotlightId] = useState<string | null>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [filteredOrganizations, setFilteredOrganizations] = useState<
+    Organization[]
+  >([]);
   const [searchActive, setSearchActive] = useState<boolean>(false);
   const [blurEnabled, setBlurEnabled] = useState<boolean>(true);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -35,7 +43,7 @@ const Page = () => {
 
   const handleSearch = (query: string): void => {
     if (!query.trim()) {
-      setFilteredCharities(charities);
+      setFilteredOrganizations(organizations);
       setSearchActive(false);
       return;
     }
@@ -43,21 +51,23 @@ const Page = () => {
     setSearchActive(true);
     const lowercaseQuery = query.toLowerCase();
 
-    const filtered = charities.filter((charity) => {
+    const filtered = organizations.filter((org) => {
       return (
-        charity.title.toLowerCase().includes(lowercaseQuery) ||
-        charity.mission.toLowerCase().includes(lowercaseQuery) ||
-        charity.location.toLowerCase().includes(lowercaseQuery) ||
-        charity.fullContext.toLowerCase().includes(lowercaseQuery) ||
-        charity.president.toLowerCase().includes(lowercaseQuery) ||
-        charity.founder.toLowerCase().includes(lowercaseQuery) ||
-        charity.email.toLowerCase().includes(lowercaseQuery) ||
-        charity.registrationNumber.toLowerCase().includes(lowercaseQuery) ||
-        charity.tags.some((tag) => tag.toLowerCase().includes(lowercaseQuery))
+        org.title.toLowerCase().includes(lowercaseQuery) ||
+        org.mission.toLowerCase().includes(lowercaseQuery) ||
+        org.location.toLowerCase().includes(lowercaseQuery) ||
+        org.fullContext.toLowerCase().includes(lowercaseQuery) ||
+        org.president.toLowerCase().includes(lowercaseQuery) ||
+        org.founder.toLowerCase().includes(lowercaseQuery) ||
+        org.email.toLowerCase().includes(lowercaseQuery) ||
+        org.registrationNumber.toLowerCase().includes(lowercaseQuery) ||
+        (org.tags || []).some((tag: string) =>
+          tag.toLowerCase().includes(lowercaseQuery),
+        )
       );
     });
 
-    setFilteredCharities(filtered);
+    setFilteredOrganizations(filtered);
   };
 
   const handleToggleBlur = (): void => {
@@ -73,10 +83,12 @@ const Page = () => {
     }
 
     const pickRandomCharity = (): void => {
-      if (filteredCharities.length === 0) return;
+      if (filteredOrganizations.length === 0) return;
 
-      const randomIndex = Math.floor(Math.random() * filteredCharities.length);
-      setSpotlightId(filteredCharities[randomIndex].id);
+      const randomIndex = Math.floor(
+        Math.random() * filteredOrganizations.length,
+      );
+      setSpotlightId(filteredOrganizations[randomIndex].id);
 
       spotlightTimerRef.current = setTimeout(() => {
         setSpotlightId(null);
@@ -90,7 +102,33 @@ const Page = () => {
       if (spotlightTimerRef.current) clearTimeout(spotlightTimerRef.current);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     };
-  }, [searchActive, filteredCharities, blurEnabled]);
+  }, [searchActive, filteredOrganizations, blurEnabled]);
+
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        const response = await fetch(`/api/organization/all`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch organizations");
+        }
+        const data = await response.json();
+        // Parse the JSONB tags field for each organization
+        const orgsWithParsedTags = data.map((org: any) => ({
+          ...org,
+          tags:
+            typeof org.tags === "string"
+              ? JSON.parse(org.tags)
+              : org.tags || [],
+        }));
+        setOrganizations(orgsWithParsedTags);
+        setFilteredOrganizations(orgsWithParsedTags);
+      } catch (error) {
+        console.error("Error fetching organizations:", error);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
 
   return (
     <div className="p-6 pt-16">
@@ -101,10 +139,10 @@ const Page = () => {
       />
 
       <div className="w-full">
-        {filteredCharities.length === 0 ? (
+        {filteredOrganizations.length === 0 ? (
           <div className="text-center py-10">
             <h2 className="text-xl font-semibold text-gray-700">
-              No charities found
+              No organizations found
             </h2>
             <p className="mt-2 text-gray-500">
               Try adjusting your search terms
@@ -112,26 +150,31 @@ const Page = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredCharities.map((charity) => (
+            {filteredOrganizations.map((organization) => (
               <div
-                key={charity.id}
-                className={`border overflow-hidden shadow-md transition-all duration-700 hover:scale-115 hover:z-10 hover:shadow-xl hover:blur-0 bg-gradient-to-br ${charity.bgGradient} ${
-                  spotlightId === charity.id && blurEnabled && !searchActive
+                key={organization.id}
+                className={`border overflow-hidden shadow-md transition-all duration-700 hover:scale-115 hover:z-10 hover:shadow-xl hover:blur-0 bg-gradient-to-br ${organization.bgGradient} ${
+                  spotlightId === organization.id &&
+                  blurEnabled &&
+                  !searchActive
                     ? "blur-0 scale-105 z-10 shadow-xl"
                     : !blurEnabled || searchActive
                       ? ""
                       : "blur-sm"
                 }`}
               >
-                <Link href={`charity/${charity.nickname}`}>
+                <Link href={`charity/${organization.nickname}`}>
                   <div className="h-48 overflow-hidden relative group">
                     <div className="relative size-full">
                       <Image
-                        src={charity.image}
-                        alt={charity.title}
+                        src={
+                          organization.image ||
+                          "https://images.unsplash.com/photo-1620778182530-703effa65a06?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGJ0Y3xlbnwwfHwwfHx8MA%3D%3D"
+                        }
+                        alt={organization.title}
                         fill
                         className={`object-cover contrast-125 transition-all duration-700 ease-in-out ${
-                          (spotlightId === charity.id &&
+                          (spotlightId === organization.id &&
                             blurEnabled &&
                             !searchActive) ||
                           !blurEnabled
@@ -139,11 +182,15 @@ const Page = () => {
                             : "grayscale"
                         } hover:grayscale-0`}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/placeholder-org.jpg";
+                        }}
                       />
                     </div>
                     <div
                       className={`absolute bottom-2 right-2 flex space-x-1 transition-opacity duration-300  ${
-                        (spotlightId === charity.id &&
+                        (spotlightId === organization.id &&
                           blurEnabled &&
                           !searchActive) ||
                         searchActive ||
@@ -152,12 +199,12 @@ const Page = () => {
                           : "opacity-0"
                       } group-hover:opacity-100`}
                     >
-                      {charity.verified && (
+                      {organization.verified && (
                         <span className="bg-primary/30 border backdrop-blur-md border-primary text-white text-xs px-2 py-1 rounded-bl-none rounded-tr-none rounded shadow-md">
                           Verified
                         </span>
                       )}
-                      {charity.premium && (
+                      {organization.premium && (
                         <span className="bg-[#f7931a]/30 border border-[#f7931a] backdrop-blur-md text-white text-xs px-2 py-1 rounded-tl-none rounded-br-none rounded ">
                           Premium
                         </span>
@@ -167,14 +214,14 @@ const Page = () => {
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-bold dark:text-white text-black">
-                        {charity.title}
+                        {organization.title}
                       </h3>
                     </div>
                     <p className="text-sm text-gray-600 mb-3">
-                      {charity.mission}
+                      {organization.mission}
                     </p>
                     <div className="flex flex-wrap gap-1 justify-end ">
-                      {charity.tags.map((tag, index) => (
+                      {(organization.tags || []).map((tag, index) => (
                         <span
                           key={index}
                           className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1 "

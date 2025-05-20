@@ -142,11 +142,38 @@ export async function updateReservation({
     .where(eq(reservation.id, id));
 }
 
-export async function createOrganization(
-  org: Omit<Organization, "id" | "createdAt" | "updatedAt">,
-) {
+export async function createOrganization(org: {
+  nickname: string;
+  image: string;
+  title: string;
+  banner: string;
+  mission: string;
+  tags: string[];
+  verified: boolean;
+  premium: boolean;
+  bgGradient: string;
+  bitcoinAddress: string;
+  location: string;
+  fullContext: string;
+  website: string;
+  email: string;
+  startDate: string;
+  registrationNumber: string;
+  president: string;
+  founder: string;
+  customMessage: string;
+}) {
   try {
-    return await db.insert(organization).values(org);
+    const newOrg = {
+      ...org,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      verified: false,
+      premium: false,
+      tags: JSON.stringify(org.tags),
+    };
+
+    return await db.insert(organization).values(newOrg);
   } catch (error) {
     console.error("Failed to create organization in database");
     throw error;
@@ -202,7 +229,11 @@ export async function deleteOrganizationById({ id }: { id: string }) {
   }
 }
 
-export async function getOrganizationByNickname({ nickname }: { nickname: string }) {
+export async function getOrganizationByNickname({
+  nickname,
+}: {
+  nickname: string;
+}) {
   try {
     const [selectedOrg] = await db
       .select()

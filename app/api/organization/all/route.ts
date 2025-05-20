@@ -1,5 +1,5 @@
-import { getAllOrganizations } from "@/db/queries"; // Assuming this function exists
 import { NextResponse } from "next/server";
+import { getAllOrganizations } from "@/db/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export async function GET() {
     if (!organizations || organizations.length === 0) {
       return NextResponse.json(
         { error: "No organizations found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -19,7 +19,7 @@ export async function GET() {
     console.error("Failed to fetch organizations:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
