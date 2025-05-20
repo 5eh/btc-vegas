@@ -3,6 +3,7 @@
 import { BitcoinQR } from "@ibunker/bitcoin-react";
 import { Attachment, ToolInvocation } from "ai";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { ReactNode } from "react";
 import { BotIcon, UserIcon } from "./icons";
 import { Markdown } from "./markdown";
@@ -54,6 +55,73 @@ const CreateDonation = ({ donation }: { donation?: any }) => {
   );
 };
 
+const OrganizationList = ({ organizations }: { organizations?: any }) => {
+  if (!organizations)
+    return (
+      <div className="w-full h-24 bg-gray-100 rounded-md animate-pulse"></div>
+    );
+
+  return (
+    <div className="border rounded-md p-4 space-y-3">
+      <h3 className="font-medium text-lg">Available Organizations</h3>
+      <div className="grid gap-4">
+        {organizations.organizations?.map((org: any) => {
+          const tags = Array.isArray(org.tags)
+            ? org.tags
+            : typeof org.tags === "string"
+              ? JSON.parse(org.tags)
+              : [];
+
+          return (
+            <div key={org.id} className="border rounded-lg p-3">
+              <div className="flex items-center gap-3">
+                {org.image && (
+                  <img
+                    src={org.image}
+                    alt={org.title}
+                    className="w-10 h-10 rounded-full"
+                  />
+                )}
+                <div>
+                  <div className="font-medium flex items-center gap-2">
+                    {org.title}
+                    {org.verified && <span className="text-blue-500">✓</span>}
+                    {org.premium && <span className="text-amber-500">★</span>}
+                  </div>
+                  <div className="text-sm text-gray-600">{org.nickname}</div>
+                </div>
+              </div>
+              <div className="text-sm mt-2">{org.mission}</div>
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {tags.slice(0, 3).map((tag: string, index: number) => (
+                    <span
+                      key={index}
+                      className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1 "
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {tags.length > 3 && (
+                    <span className="text-xs text-gray-500">
+                      +{tags.length - 3} more
+                    </span>
+                  )}
+                </div>
+              )}
+              {org.location && (
+                <div className="text-xs text-gray-500 mt-2">
+                  📍 {org.location}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const SearchCharities = ({ results }: { results?: any }) => {
   if (!results)
     return (
@@ -63,16 +131,56 @@ const SearchCharities = ({ results }: { results?: any }) => {
   return (
     <div className="border rounded-md p-4 space-y-3">
       <h3 className="font-medium text-lg">Charity Search Results</h3>
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {results.charities?.map((charity: any) => (
-          <div key={charity.id} className="border-t pt-2">
-            <div className="font-medium">{charity.name}</div>
-            <div className="text-sm text-gray-600">{charity.category}</div>
-            <div className="text-sm">{charity.description}</div>
-            <div className="flex justify-between mt-1">
-              <span className="text-xs bg-primary/30 text-primary px-2 py-0.5 border-primary border">
-                {charity.impactMetric}
-              </span>
+          <div
+            key={charity.id}
+            className="border overflow-hidden shadow-md transition-all duration-700 hover:scale-105 hover:z-10 hover:shadow-xl bg-gradient-to-br from-white to-gray-50"
+          >
+            <div className="h-40 overflow-hidden relative group">
+              <div className="relative size-full">
+                <Image
+                  src={charity.image || "/placeholder-org.jpg"}
+                  alt={charity.name}
+                  fill
+                  className="object-cover contrast-125 transition-all duration-700 ease-in-out hover:grayscale-0"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder-org.jpg";
+                  }}
+                />
+              </div>
+              <div className="absolute bottom-2 right-2 flex space-x-1">
+                {charity.verified && (
+                  <span className="bg-primary/30 border backdrop-blur-md border-primary text-white text-xs px-2 py-1 rounded shadow-md">
+                    Verified
+                  </span>
+                )}
+                {charity.premium && (
+                  <span className="bg-[#f7931a]/30 border border-[#f7931a] backdrop-blur-md text-white text-xs px-2 py-1 rounded">
+                    Premium
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-lg font-bold text-black">{charity.name}</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                {charity.description}
+              </p>
+              <div className="flex flex-wrap gap-1 justify-end">
+                {(charity.tags || []).map((tag: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-gray-200/20 border border-black hover:bg-primary/20 hover:border-primary hover:text-primary text-gray-700 text-xs px-2 py-1"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -87,30 +195,186 @@ const CharityDetails = ({ charityInfo }: { charityInfo?: any }) => {
       <div className="w-full h-36 bg-gray-100 rounded-md animate-pulse"></div>
     );
 
+  const tags = Array.isArray(charityInfo.tags)
+    ? charityInfo.tags
+    : typeof charityInfo.tags === "string"
+      ? JSON.parse(charityInfo.tags)
+      : [];
+
+  return (
+    <div className="border rounded-md overflow-hidden shadow-md">
+      <div className="h-48 relative">
+        <Image
+          src={
+            charityInfo.banner || charityInfo.image || "/placeholder-org.jpg"
+          }
+          alt={charityInfo.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        <div className="absolute bottom-4 left-4 flex items-center gap-3">
+          <div className="size-16 rounded-full overflow-hidden border-2 border-white relative">
+            <Image
+              src={charityInfo.image || "/placeholder-org.jpg"}
+              alt={charityInfo.name}
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          </div>
+          <div className="text-white text-shadow">
+            <h3 className="text-xl font-bold">{charityInfo.name}</h3>
+            <div className="flex items-center gap-2">
+              {charityInfo.verified && (
+                <span className="bg-primary/30 border backdrop-blur-md border-primary text-white text-xs px-2 py-1 rounded">
+                  Verified
+                </span>
+              )}
+              {charityInfo.premium && (
+                <span className="bg-[#f7931a]/30 border border-[#f7931a] backdrop-blur-md text-white text-xs px-2 py-1 rounded">
+                  Premium
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="p-6">
+        <p className="text-gray-600 mb-4">{charityInfo.mission}</p>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <span className="font-medium">Location:</span>
+            <p className="text-gray-600">
+              {charityInfo.location?.headquarters}
+            </p>
+          </div>
+          <div>
+            <span className="font-medium">Founded:</span>
+            <p className="text-gray-600">{charityInfo.founded}</p>
+          </div>
+          <div>
+            <span className="font-medium">Program Expenses:</span>
+            <p className="text-gray-600">
+              {charityInfo.financials?.programExpensePercentage}%
+            </p>
+          </div>
+          <div>
+            <span className="font-medium">Tax Deductible:</span>
+            <p className="text-gray-600">
+              {charityInfo.taxDeductible ? "Yes" : "No"}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {tags.map((tag: string, index: number) => (
+            <span
+              key={index}
+              className="bg-gray-200/20 border border-black hover:bg-primary/20 hover:border-primary hover:text-primary text-gray-700 text-xs px-2 py-1"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+        {charityInfo.bitcoinAddress && (
+          <div className="bg-gray-50 p-4 rounded-md">
+            <h4 className="font-medium mb-2">Bitcoin Donation Address</h4>
+            <div className="bg-white p-2 rounded border text-sm font-mono break-all">
+              {charityInfo.bitcoinAddress}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const OrganizationDetails = ({ organization }: { organization?: any }) => {
+  if (!organization)
+    return (
+      <div className="w-full h-36 bg-gray-100 rounded-md animate-pulse"></div>
+    );
+
+  const tags = Array.isArray(organization.tags)
+    ? organization.tags
+    : typeof organization.tags === "string"
+      ? JSON.parse(organization.tags)
+      : [];
+
   return (
     <div className="border rounded-md p-4">
-      <h3 className="font-medium text-lg">{charityInfo.name}</h3>
-      <div className="text-sm text-gray-600">
-        Founded: {charityInfo.founded}
+      <div className="flex items-center gap-3 mb-4">
+        {organization.image && (
+          <img
+            src={organization.image}
+            alt={organization.title}
+            className="w-12 h-12 rounded-full"
+          />
+        )}
+        <div>
+          <h3 className="font-medium text-lg">{organization.title}</h3>
+          <div className="text-sm text-gray-600">{organization.nickname}</div>
+        </div>
       </div>
-      <p className="my-2">{charityInfo.mission}</p>
+      <p className="my-2">{organization.mission}</p>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <span className="font-medium">Location:</span>{" "}
-          {charityInfo.location.headquarters}
-        </div>
-        <div>
-          <span className="font-medium">Category:</span> {charityInfo.category}
-        </div>
-        <div>
-          <span className="font-medium">Program Expenses:</span>{" "}
-          {charityInfo.financials.programExpensePercentage}%
-        </div>
-        <div>
-          <span className="font-medium">Tax Deductible:</span>{" "}
-          {charityInfo.taxDeductible ? "Yes" : "No"}
-        </div>
+        {organization.location && (
+          <div>
+            <span className="font-medium">Location:</span>{" "}
+            {organization.location}
+          </div>
+        )}
+        {organization.website && (
+          <div>
+            <span className="font-medium">Website:</span>{" "}
+            <a
+              href={organization.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              Visit Site
+            </a>
+          </div>
+        )}
+        {organization.founder && (
+          <div>
+            <span className="font-medium">Founder:</span> {organization.founder}
+          </div>
+        )}
+        {organization.president && (
+          <div>
+            <span className="font-medium">President:</span>{" "}
+            {organization.president}
+          </div>
+        )}
       </div>
+      {tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {tags.map((tag: string, index: number) => (
+            <span
+              key={index}
+              className="px-2 py-1 bg-gray-100 text-xs rounded-full"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+      {organization.fullContext && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-md text-sm">
+          <span className="font-medium">Additional Context:</span>
+          <p className="mt-1">{organization.fullContext}</p>
+        </div>
+      )}
+      {organization.bitcoinAddress && (
+        <div className="mt-4 border-t pt-4">
+          <h4 className="font-medium mb-2">Bitcoin Donation Address</h4>
+          <div className="bg-gray-50 p-2 rounded text-sm font-mono break-all">
+            {organization.bitcoinAddress}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -307,7 +571,11 @@ export const Message = ({
 
                 return (
                   <div key={toolCallId}>
-                    {toolName === "searchCharities" ? (
+                    {toolName === "getOrganizations" ? (
+                      <OrganizationList organizations={result} />
+                    ) : toolName === "getOrganizationInfo" ? (
+                      <OrganizationDetails organization={result} />
+                    ) : toolName === "searchCharities" ? (
                       <SearchCharities results={result} />
                     ) : toolName === "getCharityInfo" ? (
                       <CharityDetails charityInfo={result} />
@@ -331,7 +599,11 @@ export const Message = ({
               } else {
                 return (
                   <div key={toolCallId} className="skeleton">
-                    {toolName === "searchCharities" ? (
+                    {toolName === "getOrganizations" ? (
+                      <OrganizationList />
+                    ) : toolName === "getOrganizationInfo" ? (
+                      <OrganizationDetails />
+                    ) : toolName === "searchCharities" ? (
                       <SearchCharities />
                     ) : toolName === "getCharityInfo" ? (
                       <CharityDetails />

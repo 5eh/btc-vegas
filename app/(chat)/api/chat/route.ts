@@ -5,6 +5,8 @@ import {
   findCharities,
   getCharityDetails,
   calculateDonation,
+  getOrganizationsList,
+  getOrganizationDetails,
 } from "@/ai/actions";
 import { auth } from "@/app/(auth)/auth";
 import {
@@ -306,6 +308,23 @@ export async function POST(request: Request) {
         execute: async (props) => {
           const donationDetails = await calculateDonation(props);
           return donationDetails;
+        },
+      },
+      getOrganizations: {
+        description: "Get list of all available charity organizations",
+        parameters: z.object({}),
+        execute: async () => {
+          return await getOrganizationsList();
+        },
+      },
+      getOrganizationInfo: {
+        description: "Get detailed information about a specific organization",
+        parameters: z.object({
+          orgId: z.string().optional().describe("Organization ID"),
+          nickname: z.string().optional().describe("Organization nickname"),
+        }),
+        execute: async ({ orgId, nickname }) => {
+          return await getOrganizationDetails({ orgId, nickname });
         },
       },
     },
