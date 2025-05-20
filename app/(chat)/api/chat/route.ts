@@ -13,17 +13,75 @@ import {
   getChatById,
   getReservationById,
   saveChat,
+  getAllOrganizations,
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
-export async function POST(request: Request) {
-  const { id, messages }: { id: string; messages: Array<Message> } =
-    await request.json();
+interface Organization {
+  id: string;
+  nickname: string;
+  image: string;
+  title: string;
+  mission: string;
+  tags: unknown;
+  verified: boolean;
+  premium: boolean;
+  bgGradient: string | null;
+  location: string | null;
+  fullContext: string | null;
+  website: string | null;
+  email: string | null;
+  originDate: Date | null;
+  registrationNumber: string | null;
+  president: string | null;
+  founder: string | null;
+  banner: string | null;
+  bitcoinAddress: string | null;
+  customMessage: string | null;
+}
 
+export async function POST(request: Request) {
   const session = await auth();
 
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  const { id, messages, organizations: requestOrgs }: { 
+    id: string; 
+    messages: Array<Message>;
+    organizations?: Organization[];
+  } = await request.json();
+
+  if (!id || !Array.isArray(messages)) {
+    return new Response("Invalid request format", { status: 400 });
+  }
+
+  let organizations: Organization[] = [];
+
+  try {
+    let organizations = await getAllOrganizations();
+    organizations = organizations.map((org) => ({
+      ...org,
+      tags:
+        typeof org.tags === "string"
+          ? JSON.parse(org.tags)
+          : Array.isArray(org.tags)
+            ? org.tags
+            : [],
+      verified: !!org.verified,
+      premium: !!org.premium,
+      fullContext: org.fullContext || "",
+      president: org.president || "",
+      founder: org.founder || "",
+      customMessage: org.customMessage || "",
+      originDate: org.originDate || new Date().toISOString()
+    }));
+
+    console.log("Fetched organizations:", organizations);
+  } catch (error) {
+    console.error("Error fetching organizations:", error);
+    organizations = [];
   }
 
   const coreMessages = convertToCoreMessages(messages).filter(
@@ -32,24 +90,49 @@ export async function POST(request: Request) {
 
   const result = await streamText({
     model: geminiProModel,
-    system: `\n
-        - you are 'Fund The World', a platform that helps users discover and donate to charity organizations!
-        - keep your responses limited to a sentence, unless the user wants a good understanding of a specific charity.
-        - ONLY output lists if the user asks for information about a category of organizations.
-        - today's date is ${new Date().toLocaleDateString()}.
-        - ask follow up questions to nudge user into the optimal flow
-        - ask for any details you don't know, etc.'
-        - be knowledgeable and passionate about social impact and charitable causes
-        - emphasize the concrete impact donations can make (e.g., "$10 provides 5 meals"), HOWEVER, be clear that this is an estimate.
-        - highlight tax deduction benefits IF applicable, and IF the user wants that.
-        - here's the optimal flow
-          - search for charities based on user's interests/causes
-          - provide charity details and impact information
-          - calculate donation (ask user about donation amount, recurring options, and matching)
-          - process donation (ask user whether to proceed with payment or modify donation)
-          - provide donation receipt and impact summary after payment confirmation
-        '
-      `,
+    system: `
+      - you are 'Fund The World', a platform that helps users discover and donate to charity organizations!
+      - available organizations: ${JSON.stringify(
+        organizations.map((org) => ({
+          id: org.id,
+          nickname: org.nickname,
+          title: org.title,
+          mission: org.mission,
+          tags: org.tags,
+          verified: org.verified,
+          premium: org.premium,
+          location: org.location,
+          bitcoinAddress: org.bitcoinAddress,
+          fullContext: org.fullContext,
+          website: org.website,
+          email: org.email,
+          originDate: org.originDate,
+          registrationNumber: org.registrationNumber,
+          president: org.president,
+          founder: org.founder,
+          banner: org.banner,
+          customMessage: org.customMessage
+        })),
+        null,
+        2,
+      )}
+      - when asked about specific organizations, include ALL available information about them
+      - for TBHF (The Black History Foundation), make sure to include their full mission and context
+      - keep your responses limited to a sentence, unless the user wants a good understanding of a specific charity
+      - ONLY output lists if the user asks for information about a category of organizations
+      - today's date is ${new Date().toLocaleDateString()}
+      - ask follow up questions to nudge user into the optimal flow
+      - ask for any details you don't know
+      - be knowledgeable and passionate about social impact and charitable causes
+      - emphasize the concrete impact donations can make (e.g., "$10 provides 5 meals"), HOWEVER, be clear that this is an estimate
+      - highlight tax deduction benefits IF applicable, and IF the user wants that
+      - here's the optimal flow:
+        - search for charities based on user's interests/causes
+        - provide charity details and impact information
+        - calculate donation (ask user about donation amount, recurring options, and matching)
+        - process donation (ask user whether to proceed with payment or modify donation)
+        - provide donation receipt and impact summary after payment confirmation
+    `,
     messages: coreMessages,
     tools: {
       createDonation: {
@@ -94,9 +177,7 @@ export async function POST(request: Request) {
 
             return { id, ...props, success: true };
           } else {
-            return {
-              error: "User is not signed in to perform this action!",
-            };
+            return { error: "User is not signed in to perform this action!" };
           }
         },
       },
@@ -137,12 +218,7 @@ export async function POST(request: Request) {
         }),
         execute: async ({ donationId }) => {
           const donation = await getReservationById({ id: donationId });
-
-          if (donation.hasCompletedPayment) {
-            return { hasCompletedPayment: true };
-          } else {
-            return { hasCompletedPayment: false };
-          }
+          return { hasCompletedPayment: !!donation?.hasCompletedPayment };
         },
       },
       generateDonationReceipt: {
@@ -185,11 +261,7 @@ export async function POST(request: Request) {
             .describe("Keywords to narrow down charity search"),
         }),
         execute: async ({ category, keywords }) => {
-          const results = await findCharities({
-            category,
-            keywords,
-          });
-
+          const results = await findCharities({ category, keywords });
           return results;
         },
       },
@@ -199,10 +271,7 @@ export async function POST(request: Request) {
           charityId: z.string().describe("Unique identifier for the charity"),
         }),
         execute: async ({ charityId }) => {
-          const charityInfo = await getCharityDetails({
-            charityId,
-          });
-
+          const charityInfo = await getCharityDetails({ charityId });
           return charityInfo;
         },
       },
@@ -245,13 +314,9 @@ export async function POST(request: Request) {
             userId: session.user.id,
           });
         } catch (error) {
-          console.error("Failed to save chat");
+          console.error("Failed to save chat:", error);
         }
       }
-    },
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: "stream-text",
     },
   });
 
@@ -280,7 +345,6 @@ export async function DELETE(request: Request) {
     }
 
     await deleteChatById({ id });
-
     return new Response("Chat deleted", { status: 200 });
   } catch (error) {
     return new Response("An error occurred while processing your request", {
