@@ -26,9 +26,9 @@ const suggestedActions = [
       "Generate search results for charities in the medical category with focus on medical and pharmaceutical innovation, limit to 4 results. Specifically around South Africa",
   },
   {
-    title: "Which categories are there?",
+    title: "What organizations are on here?",
     label: "And a description of each.",
-    action: "Generate a list of common charity categories with descriptions",
+    action: "List all organizations",
   },
 ];
 
