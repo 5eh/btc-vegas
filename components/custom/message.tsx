@@ -302,13 +302,13 @@ const OrganizationDetails = ({ organization }: { organization?: any }) => {
       : [];
 
   return (
-    <div className="border rounded-md p-4">
+    <div className="border rounded-md dark:border-white  p-4">
       <div className="flex items-center gap-3 mb-4">
         {organization.image && (
           <img
             src={organization.image}
             alt={organization.title}
-            className="w-12 h-12 rounded-full"
+            className="w-12 h-12"
           />
         )}
         <div>
@@ -354,7 +354,7 @@ const OrganizationDetails = ({ organization }: { organization?: any }) => {
           {tags.map((tag: string, index: number) => (
             <span
               key={index}
-              className="px-2 py-1 bg-gray-100 text-xs rounded-full"
+              className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1 "
             >
               {tag}
             </span>
@@ -362,9 +362,11 @@ const OrganizationDetails = ({ organization }: { organization?: any }) => {
         </div>
       )}
       {organization.fullContext && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-md text-sm">
-          <span className="font-medium">Additional Context:</span>
-          <p className="mt-1">{organization.fullContext}</p>
+        <div className="mt-4 p-3 bg-gray-50 border-primary border dark:bg-primary/20 text-sm">
+          <span className="font-medium dark:text-white">
+            Additional Context:
+          </span>
+          <p className="mt-1 dark:text-white/80">{organization.fullContext}</p>
         </div>
       )}
       {organization.bitcoinAddress && (

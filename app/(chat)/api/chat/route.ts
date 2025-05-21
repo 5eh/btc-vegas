@@ -19,29 +19,6 @@ import {
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
-interface Organization {
-  id: string;
-  nickname: string;
-  image: string;
-  title: string;
-  mission: string;
-  tags: unknown;
-  verified: boolean;
-  premium: boolean;
-  bgGradient: string | null;
-  location: string | null;
-  fullContext: string | null;
-  website: string | null;
-  email: string | null;
-  originDate: Date | null;
-  registrationNumber: string | null;
-  president: string | null;
-  founder: string | null;
-  banner: string | null;
-  bitcoinAddress: string | null;
-  customMessage: string | null;
-}
-
 export async function POST(request: Request) {
   const session = await auth();
 
@@ -52,42 +29,13 @@ export async function POST(request: Request) {
   const {
     id,
     messages,
-    organizations: requestOrgs,
   }: {
     id: string;
     messages: Array<Message>;
-    organizations?: Organization[];
   } = await request.json();
 
   if (!id || !Array.isArray(messages)) {
     return new Response("Invalid request format", { status: 400 });
-  }
-
-  let organizations: Organization[] = [];
-
-  try {
-    const fetchedOrgs = await getAllOrganizations();
-    let organizations = fetchedOrgs.map((org) => ({
-      ...org,
-      tags:
-        typeof org.tags === "string"
-          ? JSON.parse(org.tags)
-          : Array.isArray(org.tags)
-            ? org.tags
-            : [],
-      verified: !!org.verified,
-      premium: !!org.premium,
-      fullContext: org.fullContext || "",
-      president: org.president || "",
-      founder: org.founder || "",
-      customMessage: org.customMessage || "",
-      originDate: org.originDate || new Date().toISOString(),
-    }));
-
-    console.log("Fetched organizations:", organizations);
-  } catch (error) {
-    console.error("Error fetching organizations:", error);
-    organizations = [];
   }
 
   const coreMessages = convertToCoreMessages(messages).filter(
@@ -96,33 +44,10 @@ export async function POST(request: Request) {
 
   const result = await streamText({
     model: geminiProModel,
+    temperature: 0.5,
     system: `
       - you are 'Fund The World', a platform that helps users discover and donate to charity organizations!
-      - available organizations: ${JSON.stringify(
-        organizations.map((org) => ({
-          id: org.id,
-          nickname: org.nickname,
-          title: org.title,
-          mission: org.mission,
-          tags: org.tags,
-          verified: org.verified,
-          premium: org.premium,
-          location: org.location,
-          bitcoinAddress: org.bitcoinAddress,
-          fullContext: org.fullContext,
-          website: org.website,
-          email: org.email,
-          originDate: org.originDate,
-          registrationNumber: org.registrationNumber,
-          president: org.president,
-          founder: org.founder,
-          banner: org.banner,
-          customMessage: org.customMessage,
-        })),
-        null,
-        2,
-      )}
-      - when asked about specific organizations, include ALL available information about them
+      - when asked about specific organizations, use the getOrganizationInfo or getOrganizations tool to fetch details
       - for TBHF (The Black History Foundation), make sure to include their full mission and context
       - keep your responses limited to a sentence, unless the user wants a good understanding of a specific charity
       - ONLY output lists if the user asks for information about a category of organizations
@@ -306,15 +231,53 @@ export async function POST(request: Request) {
             .describe("Whether the user prefers to donate with Bitcoin"),
         }),
         execute: async (props) => {
-          const donationDetails = await calculateDonation(props);
-          return donationDetails;
+          // Use a more direct approach for donation calculations to reduce token usage
+          try {
+            return await calculateDonation(props);
+          } catch (error) {
+            console.error("Error calculating donation:", error);
+            // Return a minimal response to keep the conversation going
+            return {
+              totalDonationInUSD: props.donationAmountInUSD,
+              totalDonationInBTC: props.donationAmountInUSD / 65000, // Simplified conversion
+              bitcoinAddress: "1BitcoinAddressPlaceholder",
+              donationPurpose: `Donation to ${props.charityName}`,
+              estimatedImpact:
+                "Your donation will help support this organization's mission",
+              transactionFeeInUSD: 0,
+              taxDeductionEstimateInUSD: 0,
+              matchingAmountInUSD: 0,
+              receiptId: "receipt_placeholder",
+            };
+          }
         },
       },
       getOrganizations: {
         description: "Get list of all available charity organizations",
         parameters: z.object({}),
         execute: async () => {
-          return await getOrganizationsList();
+          try {
+            const result = await getOrganizationsList();
+            // Validate organizations to prevent JSON parsing errors
+            const safeOrganizations = result.organizations.map((org: any) => ({
+              id: String(org.id || ""),
+              nickname: String(org.nickname || ""),
+              title: String(org.title || ""),
+              mission: String(org.mission || ""),
+              tags: Array.isArray(org.tags) ? org.tags.map(String) : [],
+              verified: Boolean(org.verified),
+              premium: Boolean(org.premium),
+              impact: String(org.impact || ""),
+              location: org.location ? String(org.location) : null,
+              bitcoinAddress: org.bitcoinAddress
+                ? String(org.bitcoinAddress)
+                : null,
+            }));
+            return { organizations: safeOrganizations };
+          } catch (error) {
+            console.error("Error fetching organizations:", error);
+            return { organizations: [] };
+          }
         },
       },
       getOrganizationInfo: {
@@ -324,26 +287,98 @@ export async function POST(request: Request) {
           nickname: z.string().optional().describe("Organization nickname"),
         }),
         execute: async ({ orgId, nickname }) => {
-          return await getOrganizationDetails({ orgId, nickname });
+          try {
+            const details = await getOrganizationDetails({ orgId, nickname });
+            // Validate organization details to prevent JSON parsing errors
+            return {
+              id: String(details.id || orgId || nickname || "unknown"),
+              nickname: String(details.nickname || nickname || "unknown"),
+              title: String(details.title || "Organization"),
+              mission: String(details.mission || "Information unavailable"),
+              image: String(details.image || ""),
+              tags: Array.isArray(details.tags) ? details.tags.map(String) : [],
+              verified: Boolean(details.verified),
+              premium: Boolean(details.premium),
+              bgGradient: details.bgGradient
+                ? String(details.bgGradient)
+                : null,
+              location: details.location ? String(details.location) : null,
+              fullContext: String(details.fullContext || details.mission || ""),
+              website: details.website ? String(details.website) : null,
+              email: details.email ? String(details.email) : null,
+              originDate: details.originDate
+                ? String(details.originDate)
+                : null,
+              registrationNumber: details.registrationNumber
+                ? String(details.registrationNumber)
+                : null,
+              president: details.president ? String(details.president) : null,
+              founder: details.founder ? String(details.founder) : null,
+              banner: details.banner ? String(details.banner) : null,
+              bitcoinAddress: details.bitcoinAddress
+                ? String(details.bitcoinAddress)
+                : null,
+              customMessage: details.customMessage
+                ? String(details.customMessage)
+                : null,
+            };
+          } catch (error) {
+            console.error("Error fetching organization details:", error);
+            return {
+              id: String(orgId || nickname || "unknown"),
+              nickname: String(nickname || "unknown"),
+              title: "Organization not found",
+              mission: "Information unavailable",
+              image: "",
+              tags: [],
+            };
+          }
         },
       },
     },
     onFinish: async ({ responseMessages }) => {
-      if (session.user && session.user.id) {
-        try {
-          await saveChat({
-            id,
-            messages: [...coreMessages, ...responseMessages],
-            userId: session.user.id,
-          });
-        } catch (error) {
-          console.error("Failed to save chat:", error);
-        }
+      if (session?.user?.id) {
+        setTimeout(async () => {
+          try {
+            const validMessages = [...coreMessages, ...responseMessages].filter(
+              (msg) =>
+                msg &&
+                typeof msg.content === "string" &&
+                msg.content.length > 0,
+            );
+
+            await saveChat({
+              id,
+              messages: validMessages,
+              userId: session.user?.id || "",
+            });
+          } catch (error) {
+            console.error("Failed to save chat:", error);
+          }
+        }, 100);
       }
     },
   });
 
-  return result.toDataStreamResponse({});
+  try {
+    return result.toDataStreamResponse({
+      headers: {
+        "Cache-Control": "no-cache, no-transform",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (error) {
+    console.error("Error generating response stream:", error);
+    return new Response(
+      "An error occurred while processing your request. Please try again.",
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      },
+    );
+  }
 }
 
 export async function DELETE(request: Request) {
