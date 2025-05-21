@@ -7,7 +7,7 @@ import { Footer } from "@/components/ui/footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://fundtheworld.ai"),
+  metadataBase: new URL("https://fundtheworld.arthurlabs.net"),
   title: "Bitcoin Charity Searches",
   description:
     "Frank, Trevor, Watson. FTW. Fund the World. A global charity donation platform utilizing Bitcoin and Artificial Intelligence.",
