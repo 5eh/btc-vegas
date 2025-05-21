@@ -370,9 +370,10 @@ const OrganizationDetails = ({ organization }: { organization?: any }) => {
         </div>
       )}
       {organization.bitcoinAddress && (
-        <div className="mt-4 border-t pt-4">
-          <h4 className="font-medium mb-2">Bitcoin Donation Address</h4>
-          <div className="bg-gray-50 p-2 rounded text-sm font-mono break-all">
+        <div className="">
+          <div className="mt-4 p-3 bg-gray-50 border-primary border dark:bg-primary/20 text-sm">
+            <h4 className="font-medium mb-2">Bitcoin Donation Address</h4>
+
             {organization.bitcoinAddress}
           </div>
         </div>

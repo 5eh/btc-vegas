@@ -15,7 +15,6 @@ import {
   getChatById,
   getReservationById,
   saveChat,
-  getAllOrganizations,
 } from "@/db/queries";
 import { generateUUID } from "@/lib/utils";
 
@@ -60,7 +59,7 @@ export async function POST(request: Request) {
       - here's the optimal flow:
         - search for charities based on user's interests/causes
         - provide charity details and impact information
-        - calculate donation (ask user about donation amount, recurring options, and matching)
+        - calculate donation (ask user about donation amount, recurring options)
         - process donation (ask user whether to proceed with payment or modify donation)
         - provide donation receipt and impact summary after payment confirmation
     `,
@@ -222,9 +221,6 @@ export async function POST(request: Request) {
               "Frequency of recurring donation (e.g., monthly, quarterly, yearly)",
             ),
           donorName: z.string().describe("Name of the donor"),
-          matchingEnabled: z
-            .boolean()
-            .describe("Whether to enable donation matching if available"),
           bitcoinPreferred: z
             .boolean()
             .optional()
@@ -239,14 +235,13 @@ export async function POST(request: Request) {
             // Return a minimal response to keep the conversation going
             return {
               totalDonationInUSD: props.donationAmountInUSD,
-              totalDonationInBTC: props.donationAmountInUSD / 65000, // Simplified conversion
+              totalDonationInBTC: props.donationAmountInUSD / 100000,
               bitcoinAddress: "1BitcoinAddressPlaceholder",
               donationPurpose: `Donation to ${props.charityName}`,
               estimatedImpact:
                 "Your donation will help support this organization's mission",
               transactionFeeInUSD: 0,
               taxDeductionEstimateInUSD: 0,
-              matchingAmountInUSD: 0,
               receiptId: "receipt_placeholder",
             };
           }

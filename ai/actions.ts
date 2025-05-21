@@ -25,22 +25,24 @@ export async function getCharityCategories() {
     console.log("Cache retrieval error:", e);
   }
 
-  const { object: categories } = await generateObject({
+  const { object: categories } = (await generateObject({
     model: geminiFlashModel,
     prompt: `Generate a concise list of common charity categories`,
     output: "array",
-    schema: z.array(z.object({
-      id: z.string().describe("Unique identifier for the category"),
-      name: z.string().describe("Name of the charity category"),
-      description: z.string().describe("Brief description of the category"),
-      popularCauses: z
-        .array(z.string())
-        .describe("Popular causes within this category"),
-      iconName: z
-        .string()
-        .describe("Name of an icon that represents this category"),
-    })),
-  }) as { object: any[] };
+    schema: z.array(
+      z.object({
+        id: z.string().describe("Unique identifier for the category"),
+        name: z.string().describe("Name of the charity category"),
+        description: z.string().describe("Brief description of the category"),
+        popularCauses: z
+          .array(z.string())
+          .describe("Popular causes within this category"),
+        iconName: z
+          .string()
+          .describe("Name of an icon that represents this category"),
+      }),
+    ),
+  })) as { object: any[] };
 
   // Cache the result if in browser context
   try {
@@ -63,31 +65,33 @@ export async function generateCharityRecommendations({
   location?: string;
   donationAmount?: number;
 }) {
-  const { object: recommendations } = await generateObject({
+  const { object: recommendations } = (await generateObject({
     model: geminiFlashModel,
     prompt: `Recommend top 3 charities based on: interests - ${userInterests.join(", ")}, location - ${location || "any"}, donation amount - ${donationAmount || "any"}`,
     output: "array",
-    schema: z.array(z.object({
-      id: z.string().describe("Unique identifier for the charity"),
-      name: z.string().describe("Name of the charity organization"),
-      category: z.string().describe("Primary category of the charity"),
-      description: z
-        .string()
-        .max(120)
-        .describe(
-          "Brief description of why this charity matches the user's preferences",
-        ),
-      matchScore: z
-        .number()
-        .describe(
-          "Score from 1-100 indicating how well this charity matches the user's preferences",
-        ),
-      impactHighlight: z
-        .string()
-        .max(80)
-        .describe("Highlight of the potential impact of a donation"),
-    })),
-  }) as { object: any[] };
+    schema: z.array(
+      z.object({
+        id: z.string().describe("Unique identifier for the charity"),
+        name: z.string().describe("Name of the charity organization"),
+        category: z.string().describe("Primary category of the charity"),
+        description: z
+          .string()
+          .max(120)
+          .describe(
+            "Brief description of why this charity matches the user's preferences",
+          ),
+        matchScore: z
+          .number()
+          .describe(
+            "Score from 1-100 indicating how well this charity matches the user's preferences",
+          ),
+        impactHighlight: z
+          .string()
+          .max(80)
+          .describe("Highlight of the potential impact of a donation"),
+      }),
+    ),
+  })) as { object: any[] };
 
   return { recommendations };
 }
@@ -241,31 +245,44 @@ export async function getOrganizationsList() {
       }));
     } else {
       // Only use AI enhancement if necessary
-      const { object: aiEnhancedOrgs } = await generateObject({
-              model: geminiFlashModel,
-              prompt: `Enhance these organizations concisely: ${JSON.stringify(
-                organizations
-                  .map((o) => ({
-                    id: o.id,
-                    nickname: o.nickname,
-                    title: o.title,
-                  }))
-                  .slice(0, 5),
-              )}`,
-              output: "array",
-              schema: z.array(z.object({
-                id: z.string().describe("Organization's unique identifier"),
-                nickname: z.string().describe("Organization's short name/nickname"),
-                title: z.string().describe("Full organization name"),
-                mission: z.string().describe("Organization's mission statement"),
-                tags: z.array(z.string()).describe("Categories and tags for the organization"),
-                verified: z.boolean().describe("Whether the organization is verified"),
-                premium: z.boolean().describe("Whether the organization has premium status"),
-                impact: z.string().describe("Description of the organization's impact"),
-                location: z.string().optional().describe("Organization's location"),
-                bitcoinAddress: z.string().optional().describe("Bitcoin donation address"),
-              })),
-            }) as { object: any[] };
+      const { object: aiEnhancedOrgs } = (await generateObject({
+        model: geminiFlashModel,
+        prompt: `Enhance these organizations concisely: ${JSON.stringify(
+          organizations
+            .map((o) => ({
+              id: o.id,
+              nickname: o.nickname,
+              title: o.title,
+            }))
+            .slice(0, 5),
+        )}`,
+        output: "array",
+        schema: z.array(
+          z.object({
+            id: z.string().describe("Organization's unique identifier"),
+            nickname: z.string().describe("Organization's short name/nickname"),
+            title: z.string().describe("Full organization name"),
+            mission: z.string().describe("Organization's mission statement"),
+            tags: z
+              .array(z.string())
+              .describe("Categories and tags for the organization"),
+            verified: z
+              .boolean()
+              .describe("Whether the organization is verified"),
+            premium: z
+              .boolean()
+              .describe("Whether the organization has premium status"),
+            impact: z
+              .string()
+              .describe("Description of the organization's impact"),
+            location: z.string().optional().describe("Organization's location"),
+            bitcoinAddress: z
+              .string()
+              .optional()
+              .describe("Bitcoin donation address"),
+          }),
+        ),
+      })) as { object: any[] };
       // Convert AI-enhanced organizations to our expected format
       if (Array.isArray(aiEnhancedOrgs)) {
         enhancedOrgs = aiEnhancedOrgs.map((org: any) => ({
@@ -278,22 +295,26 @@ export async function getOrganizationsList() {
           premium: Boolean(org.premium),
           impact: String(org.impact || ""),
           location: org.location ? String(org.location) : null,
-          bitcoinAddress: org.bitcoinAddress ? String(org.bitcoinAddress) : null,
+          bitcoinAddress: org.bitcoinAddress
+            ? String(org.bitcoinAddress)
+            : null,
         }));
       } else {
         // If somehow not an array, create a default entry
-        enhancedOrgs = [{
-          id: "default",
-          nickname: "default",
-          title: "Default Organization",
-          mission: "Mission information unavailable",
-          tags: [],
-          verified: false,
-          premium: false,
-          impact: "Impact information unavailable",
-          location: null,
-          bitcoinAddress: null,
-        }];
+        enhancedOrgs = [
+          {
+            id: "default",
+            nickname: "default",
+            title: "Default Organization",
+            mission: "Mission information unavailable",
+            tags: [],
+            verified: false,
+            premium: false,
+            impact: "Impact information unavailable",
+            location: null,
+            bitcoinAddress: null,
+          },
+        ];
       }
     }
   } catch (error) {
@@ -484,40 +505,38 @@ export async function findCharities({
     // Continue if cache parsing fails
   }
 
-  const { object: charitySearchResults } = await generateObject({
+  const { object: charitySearchResults } = (await generateObject({
     model: geminiFlashModel,
     prompt: `Generate search results for charities in the ${category} category with focus on ${keywords}, limit to 3 results`,
-    output: "array", 
-    schema: z.array(z.object({
-      id: z.string().describe("Unique identifier for the charity"),
-      name: z.string().describe("Name of the charity organization"),
-      category: z.string().describe("Primary category of the charity"),
-      description: z
-        .string()
-        .max(100)
-        .describe("Brief description of the charity's mission"),
-      location: z.object({
-        city: z.string().describe("City where the charity is based"),
-        country: z.string().describe("Country where the charity is based"),
+    output: "array",
+    schema: z.array(
+      z.object({
+        id: z.string().describe("Unique identifier for the charity"),
+        name: z.string().describe("Name of the charity organization"),
+        category: z.string().describe("Primary category of the charity"),
+        description: z
+          .string()
+          .max(100)
+          .describe("Brief description of the charity's mission"),
+        location: z.object({
+          city: z.string().describe("City where the charity is based"),
+          country: z.string().describe("Country where the charity is based"),
+        }),
+        impactMetric: z
+          .string()
+          .max(60)
+          .describe(
+            "Primary impact metric (e.g., '100 meals per $50', '10 trees planted per $20')",
+          ),
+
+        minimumDonationInUSD: z
+          .number()
+          .describe("Minimum suggested donation in US dollars"),
       }),
-      impactMetric: z
-        .string()
-        .max(60)
-        .describe(
-          "Primary impact metric (e.g., '100 meals per $50', '10 trees planted per $20')",
-        ),
-      matchingDonation: z
-        .boolean()
-        .describe("Whether this charity has matching donations available"),
-      minimumDonationInUSD: z
-        .number()
-        .describe("Minimum suggested donation in US dollars"),
-    })),
-  }) as { object: any[] };
+    ),
+  })) as { object: any[] };
 
   const result = { charities: charitySearchResults };
-
-  // Cache the results if in browser context
   try {
     if (typeof window !== "undefined" && window.sessionStorage) {
       sessionStorage.setItem(cacheKey, JSON.stringify(result));
