@@ -38,6 +38,7 @@ const Page = () => {
   >([]);
   const [searchActive, setSearchActive] = useState<boolean>(false);
   const [blurEnabled, setBlurEnabled] = useState<boolean>(true);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const spotlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -45,10 +46,12 @@ const Page = () => {
     if (!query.trim()) {
       setFilteredOrganizations(organizations);
       setSearchActive(false);
+      setIsSearching(false);
       return;
     }
 
     setSearchActive(true);
+    setIsSearching(true);
     const lowercaseQuery = query.toLowerCase();
 
     const filtered = organizations.filter((org) => {
@@ -131,12 +134,15 @@ const Page = () => {
   }, []);
 
   return (
-    <div className="p-6 pt-16">
-      <DirectSearch
-        onSearch={handleSearch}
-        blurEnabled={blurEnabled}
-        onToggleBlur={handleToggleBlur}
-      />
+    <div className="p-6 pt-16 pb-24 sm:pb-6 relative">
+      {/* Desktop search component */}
+      <div className="hidden sm:block">
+        <DirectSearch
+          onSearch={handleSearch}
+          blurEnabled={blurEnabled}
+          onToggleBlur={handleToggleBlur}
+        />
+      </div>
 
       <div className="w-full">
         {filteredOrganizations.length === 0 ? (
@@ -149,7 +155,7 @@ const Page = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {filteredOrganizations.map((organization) => (
               <div
                 key={organization.id}
@@ -236,6 +242,15 @@ const Page = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Mobile search component - fixed at bottom unless searching */}
+      <div className={`sm:hidden fixed ${isSearching ? 'top-0 pt-16' : 'bottom-0'} left-0 right-0 p-4 bg-transparent backdrop-blur-3xl border-t dark:border-gray-800 z-10 transition-all duration-300`}>
+        <DirectSearch
+          onSearch={handleSearch}
+          blurEnabled={blurEnabled}
+          onToggleBlur={handleToggleBlur}
+        />
       </div>
     </div>
   );
