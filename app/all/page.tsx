@@ -134,7 +134,7 @@ const Page = () => {
   }, []);
 
   return (
-    <div className="p-6 pt-16 pb-24 sm:pb-6 relative">
+    <div className="p-4 sm:p-6 pt-14 sm:pt-16 pb-28 sm:pb-6 relative">
       {/* Desktop search component */}
       <div className="hidden sm:block">
         <DirectSearch
@@ -155,22 +155,22 @@ const Page = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
             {filteredOrganizations.map((organization) => (
               <div
                 key={organization.id}
-                className={`border overflow-hidden shadow-md transition-all duration-700 hover:scale-115 hover:z-10 hover:shadow-xl hover:blur-0 bg-gradient-to-br ${organization.bgGradient} ${
+                className={`border overflow-hidden rounded-lg shadow-md transition-all duration-700 hover:scale-105 hover:z-10 hover:shadow-xl sm:hover:blur-0 bg-gradient-to-br ${organization.bgGradient} ${
                   spotlightId === organization.id &&
                   blurEnabled &&
                   !searchActive
                     ? "blur-0 scale-105 z-10 shadow-xl"
                     : !blurEnabled || searchActive
                       ? ""
-                      : "blur-sm"
+                      : "sm:blur-sm"
                 }`}
               >
-                <Link href={`charity/${organization.nickname}`}>
-                  <div className="h-48 overflow-hidden relative group">
+                <Link href={`/charity/${organization.nickname}`}>
+                  <div className="h-36 sm:h-48 overflow-hidden relative group">
                     <div className="relative size-full">
                       <Image
                         src={
@@ -185,24 +185,24 @@ const Page = () => {
                             !searchActive) ||
                           !blurEnabled
                             ? "grayscale-0"
-                            : "grayscale"
+                            : "sm:grayscale grayscale-0"
                         } hover:grayscale-0`}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = "/placeholder-org.jpg";
+                          target.src = "https://images.unsplash.com/photo-1620778182530-703effa65a06?w=600&auto=format&fit=crop&q=60";
                         }}
                       />
                     </div>
                     <div
-                      className={`absolute bottom-2 right-2 flex space-x-1 transition-opacity duration-300  ${
+                      className={`absolute bottom-2 right-2 flex space-x-1 transition-opacity duration-300 ${
                         (spotlightId === organization.id &&
                           blurEnabled &&
                           !searchActive) ||
                         searchActive ||
                         !blurEnabled
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-100 sm:opacity-0"
                       } group-hover:opacity-100`}
                     >
                       {organization.verified && (
@@ -217,20 +217,20 @@ const Page = () => {
                       )}
                     </div>
                   </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold dark:text-white text-black">
+                  <div className="p-3 sm:p-4">
+                    <div className="flex justify-between items-start mb-1 sm:mb-2">
+                      <h3 className="text-sm sm:text-lg font-bold dark:text-white text-black line-clamp-1">
                         {organization.title}
                       </h3>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">
                       {organization.mission}
                     </p>
-                    <div className="flex flex-wrap gap-1 justify-end ">
-                      {(organization.tags || []).map((tag, index) => (
+                    <div className="flex flex-wrap gap-1 justify-end">
+                      {(organization.tags || []).slice(0, 2).map((tag, index) => (
                         <span
                           key={index}
-                          className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-xs px-2 py-1 "
+                          className="bg-gray-200/20 dark:bg-white/20 dark:text-white dark:border-white border border-black dark:hover:border dark:hover:text-primary hover:bg-primary/20 hover:border-primary hover:text-primary dark:hover:border-primary text-gray-700 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1"
                         >
                           {tag}
                         </span>
@@ -245,7 +245,7 @@ const Page = () => {
       </div>
 
       {/* Mobile search component - fixed at bottom unless searching */}
-      <div className={`sm:hidden fixed ${isSearching ? 'top-0 pt-16' : 'bottom-0'} left-0 right-0 p-4 bg-transparent backdrop-blur-3xl border-t dark:border-gray-800 z-10 transition-all duration-300`}>
+      <div className={`sm:hidden fixed ${isSearching ? 'top-0 pt-14' : 'bottom-0'} left-0 right-0 p-3 bg-background/80 backdrop-blur-xl border-t dark:border-gray-800 z-20 transition-all duration-300`}>
         <DirectSearch
           onSearch={handleSearch}
           blurEnabled={blurEnabled}

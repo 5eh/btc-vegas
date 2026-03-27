@@ -87,7 +87,7 @@ export const History = ({ user }: { user: User | undefined }) => {
     <>
       <Button
         variant="outline"
-        className="p-1.5 h-fit"
+        className="p-2 size-9 flex items-center justify-center"
         onClick={() => {
           setIsHistoryVisible(true);
         }}
@@ -188,7 +188,7 @@ export const History = ({ user }: { user: User | undefined }) => {
                     <DropdownMenu modal={true}>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          className="p-0 h-fit font-normal text-zinc-500 transition-none hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                          className="p-1.5 size-8 flex items-center justify-center font-normal text-zinc-500 transition-none hover:bg-zinc-200 dark:hover:bg-zinc-700"
                           variant="ghost"
                         >
                           <MoreHorizontalIcon />

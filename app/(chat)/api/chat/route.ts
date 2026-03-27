@@ -2,8 +2,6 @@ import { convertToCoreMessages, Message, streamText } from "ai";
 import { z } from "zod";
 import { geminiProModel } from "@/ai";
 import {
-  findCharities,
-  getCharityDetails,
   calculateDonation,
   getOrganizationsList,
   getOrganizationDetails,
@@ -12,6 +10,7 @@ import { auth } from "@/app/(auth)/auth";
 import {
   createReservation,
   deleteChatById,
+  getAllOrganizations,
   getChatById,
   getReservationById,
   saveChat,
@@ -179,7 +178,8 @@ export async function POST(request: Request) {
         },
       },
       searchCharities: {
-        description: "Search for charities based on category and keywords",
+        description:
+          "Search for charity organizations in the database by category, keywords, or tags",
         parameters: z.object({
           category: z
             .string()
@@ -191,18 +191,104 @@ export async function POST(request: Request) {
             .describe("Keywords to narrow down charity search"),
         }),
         execute: async ({ category, keywords }) => {
-          const results = await findCharities({ category, keywords });
-          return results;
+          try {
+            const allOrgs = await getAllOrganizations();
+            const query = `${category} ${keywords}`.toLowerCase();
+
+            const matched = allOrgs
+              .filter((org) => {
+                const tags = Array.isArray(org.tags)
+                  ? org.tags
+                  : typeof org.tags === "string"
+                    ? JSON.parse(org.tags)
+                    : [];
+                const searchable = [
+                  org.title,
+                  org.mission,
+                  org.fullContext,
+                  org.location,
+                  ...tags,
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+                  .toLowerCase();
+                return query
+                  .split(/\s+/)
+                  .some((word) => searchable.includes(word));
+              })
+              .slice(0, 5)
+              .map((org) => ({
+                id: org.id,
+                nickname: org.nickname,
+                name: org.title,
+                mission: org.mission,
+                tags: Array.isArray(org.tags)
+                  ? org.tags
+                  : typeof org.tags === "string"
+                    ? JSON.parse(org.tags)
+                    : [],
+                location: org.location || "Unknown",
+                verified: !!org.verified,
+                premium: !!org.premium,
+                bitcoinAddress: org.bitcoinAddress || null,
+              }));
+
+            if (matched.length === 0) {
+              // Return all orgs if no match so the AI can still help
+              const fallback = allOrgs.slice(0, 5).map((org) => ({
+                id: org.id,
+                nickname: org.nickname,
+                name: org.title,
+                mission: org.mission,
+                tags: Array.isArray(org.tags)
+                  ? org.tags
+                  : typeof org.tags === "string"
+                    ? JSON.parse(org.tags)
+                    : [],
+                location: org.location || "Unknown",
+                verified: !!org.verified,
+                premium: !!org.premium,
+                bitcoinAddress: org.bitcoinAddress || null,
+              }));
+              return {
+                charities: fallback,
+                note: `No exact matches for "${category} ${keywords}", showing all available organizations`,
+              };
+            }
+
+            return { charities: matched };
+          } catch (error) {
+            console.error("Error searching charities:", error);
+            return {
+              charities: [],
+              error: "Failed to search charities. Please try again.",
+            };
+          }
         },
       },
       getCharityInfo: {
-        description: "Get detailed information about a specific charity",
+        description:
+          "Get detailed information about a specific charity by its ID or nickname",
         parameters: z.object({
-          charityId: z.string().describe("Unique identifier for the charity"),
+          charityId: z
+            .string()
+            .describe(
+              "Unique identifier or nickname for the charity organization",
+            ),
         }),
         execute: async ({ charityId }) => {
-          const charityInfo = await getCharityDetails({ charityId });
-          return charityInfo;
+          try {
+            const details = await getOrganizationDetails({
+              orgId: charityId,
+              nickname: charityId,
+            });
+            return details;
+          } catch (error) {
+            console.error("Error fetching charity info:", error);
+            return {
+              error: `Could not find charity "${charityId}". Use getOrganizations to see available charities.`,
+            };
+          }
         },
       },
       processDonation: {

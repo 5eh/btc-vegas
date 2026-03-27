@@ -125,7 +125,7 @@ export default function CharityPage() {
   }
 
   return (
-    <div className="mx-auto mt-16 md:mt-20 px-4 md:px-6">
+    <div className="mx-auto mt-14 sm:mt-16 md:mt-20 px-3 sm:px-4 md:px-6 pb-8">
       <div className="h-64 sm:h-80 md:h-96 overflow-hidden relative rounded-lg">
         <Image
           src={organization!.banner}
@@ -187,12 +187,12 @@ export default function CharityPage() {
 
       <div className="space-y-8">
         <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between p-4 bg-transparent backdrop-blur-3xl border border-gray-200 dark:border-gray-700 rounded-lg">
-          <div className="break-all font-mono text-xs xs:text-sm dark:text-gray-300 mb-3 xs:mb-0 w-full xs:w-auto overflow-hidden overflow-ellipsis">
+          <div className="break-all font-mono text-xs xs:text-sm dark:text-gray-300 mb-3 xs:mb-0 w-full xs:w-auto overflow-hidden text-ellipsis">
             {organization!.bitcoinAddress}
           </div>
           <div className="flex gap-2 w-full xs:w-auto xs:ml-4 justify-between xs:justify-end">
             <button
-              className="flex-1 xs:flex-initial px-3 py-2 xs:py-1 bg-transparent backdrop-blur-xl border border-orange-500 text-orange-500 text-sm rounded-lg hover:bg-orange-500 hover:text-white transition-all"
+              className="flex-1 xs:flex-initial px-4 py-2.5 xs:py-2 bg-transparent backdrop-blur-xl border border-orange-500 text-orange-500 text-sm rounded-lg hover:bg-orange-500 hover:text-white active:bg-orange-500 active:text-white transition-all"
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(
@@ -207,7 +207,7 @@ export default function CharityPage() {
             </button>
             <a
               href={`bitcoin:${organization!.bitcoinAddress}`}
-              className="flex-1 xs:flex-initial text-center px-3 py-2 xs:py-1 bg-transparent backdrop-blur-xl border border-primary text-primary text-sm rounded-lg hover:bg-primary hover:text-white transition-all"
+              className="flex-1 xs:flex-initial text-center px-4 py-2.5 xs:py-2 bg-transparent backdrop-blur-xl border border-primary text-primary text-sm rounded-lg hover:bg-primary hover:text-white active:bg-primary active:text-white transition-all"
             >
               Open
             </a>
@@ -272,7 +272,7 @@ export default function CharityPage() {
                 <MapPin className="size-5 text-primary mt-0.5 shrink-0" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium dark:text-white">Location</h3>
-                  <p className="text-sm text-primary blur-sm hover:blur-0 transition-all duration-300">
+                  <p className="text-sm text-primary sm:blur-sm sm:hover:blur-0 transition-all duration-300">
                     {organization!.location}
                   </p>
                 </div>
@@ -285,7 +285,7 @@ export default function CharityPage() {
                   <h3 className="text-sm font-medium dark:text-white">Contact</h3>
                   <a
                     href={`mailto:${organization!.email}`}
-                    className="text-sm text-primary blur-sm hover:blur-0 transition-all duration-300"
+                    className="text-sm text-primary sm:blur-sm sm:hover:blur-0 transition-all duration-300"
                   >
                     {organization!.email}
                   </a>
@@ -301,7 +301,7 @@ export default function CharityPage() {
                     href={organization!.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-primary blur-sm hover:blur-0 transition-all duration-300"
+                    className="text-sm text-primary sm:blur-sm sm:hover:blur-0 transition-all duration-300 break-all"
                   >
                     {organization!.website.replace(/(^\w+:|^)\/\//, "")}
                   </a>
@@ -313,7 +313,7 @@ export default function CharityPage() {
                 <Award className="size-5 text-primary mt-0.5 shrink-0" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium dark:text-white">Registration</h3>
-                  <p className="text-sm text-primary blur-sm hover:blur-0 transition-all duration-300">
+                  <p className="text-sm text-primary sm:blur-sm sm:hover:blur-0 transition-all duration-300">
                     {organization!.registrationNumber}
                   </p>
                 </div>
@@ -324,7 +324,7 @@ export default function CharityPage() {
                 <Shield className="size-5 text-primary mt-0.5 shrink-0" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium dark:text-white">Leadership</h3>
-                  <p className="text-sm text-primary blur-sm hover:blur-0 transition-all duration-300">
+                  <p className="text-sm text-primary sm:blur-sm sm:hover:blur-0 transition-all duration-300">
                     <span className="block">President: {organization!.president}</span>
                     <span className="block">Founder: {organization!.founder}</span>
                   </p>

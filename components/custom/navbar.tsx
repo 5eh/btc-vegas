@@ -17,23 +17,23 @@ export const Navbar = async () => {
 
   return (
     <>
-      <div className="bg-background absolute top-0 left-0 w-dvw py-2 px-3 justify-between flex flex-row items-center z-30">
-        <div className="flex flex-row gap-3 items-center">
+      <div className="bg-background absolute top-0 left-0 w-full py-2 px-3 justify-between flex flex-row items-center z-30">
+        <div className="flex flex-row gap-2 sm:gap-3 items-center">
           <History user={session?.user} />
           <div className="flex flex-row gap-2 items-center">
             <Image src="/images/Logo.png" height={30} width={30} alt="FTW" />
-            <div className="text-zinc-500 invisible sm:visible">|</div>
+            <div className="text-zinc-500 hidden sm:block">|</div>
             <Link href="/">
-              <div className="text-sm invisible sm:visible dark:text-zinc-300 truncate w-28 md:w-fit">
+              <div className="text-sm hidden sm:block dark:text-zinc-300 truncate w-28 md:w-fit">
                 Fund The World
               </div>
             </Link>
           </div>
         </div>
 
-        <div className="flex gap-4 px-4">
+        <div className="flex gap-2 sm:gap-4">
           <Link href={"/all"}>
-            <button className="px-4 py-2 md:rounded-full text-black dark:text-white  blur-sm hover:blur-0  border border-primary transition hover:ease-in-out hover:border hover:border-primary">
+            <button className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg md:rounded-full text-sm text-black dark:text-white border border-primary transition hover:bg-primary/10">
               Organizations
             </button>
           </Link>
@@ -42,7 +42,7 @@ export const Navbar = async () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className="px-4 py-2  rounded-none md:rounded-full text-black dark:text-white blur-sm hover:blur-0 border border-primary transition hover:ease-in-out bg-transparent"
+                className="px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg md:rounded-full text-xs sm:text-sm text-black dark:text-white border border-primary transition hover:bg-primary/10 bg-transparent max-w-[140px] sm:max-w-none truncate"
                 variant="secondary"
               >
                 {session.user?.email}
@@ -74,8 +74,11 @@ export const Navbar = async () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button className="py-1.5 px-2 h-fit font-normal text-white" asChild>
-            <Link href="/login">Be the change + login</Link>
+          <Button className="py-2 px-3 sm:px-4 h-fit font-normal text-white text-xs sm:text-sm rounded-lg" asChild>
+            <Link href="/login">
+              <span className="hidden sm:inline">Be the change + login</span>
+              <span className="sm:hidden">Login</span>
+            </Link>
           </Button>
         )}
       </div>

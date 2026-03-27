@@ -551,15 +551,15 @@ const Page = () => {
   }
 
   return (
-    <div className="pt-16 min-h-screen flex justify-center">
-      <div className="max-w-4xl w-full px-4">
-        <div className="bg-white/5 rounded-lg p-8 backdrop-blur-sm">
-          <h1 className="text-2xl font-bold mb-6 text-center">
+    <div className="pt-14 sm:pt-16 min-h-screen flex justify-center">
+      <div className="max-w-4xl w-full px-3 sm:px-4">
+        <div className="bg-white/5 rounded-lg p-4 sm:p-6 md:p-8 backdrop-blur-sm">
+          <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">
             Organization Submission
           </h1>
 
           {/* Stepper */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="flex items-center justify-between relative">
               {steps.map((step, index) => (
                 <div
@@ -596,7 +596,7 @@ const Page = () => {
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-2">
+            <div className="hidden sm:flex justify-between mt-2">
               {steps.map((step) => (
                 <div
                   key={step.id}
@@ -608,6 +608,9 @@ const Page = () => {
                   {step.name}
                 </div>
               ))}
+            </div>
+            <div className="sm:hidden text-center mt-2 text-xs text-primary font-medium">
+              Step {currentStep}: {steps[currentStep - 1].name}
             </div>
           </div>
 
@@ -640,10 +643,10 @@ const Page = () => {
           </div>
 
           {currentStep === steps.length && (
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-center mt-6 sm:mt-8">
               <iframe
                 src="https://nowpayments.io/embeds/payment-widget?iid=4426600256"
-                width="410"
+                className="w-full max-w-[410px]"
                 height="696"
                 frameBorder="0"
                 scrolling="no"

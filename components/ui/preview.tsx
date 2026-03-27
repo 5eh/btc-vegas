@@ -36,7 +36,7 @@ export default function Preview({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = "/placeholder-org.jpg";
+              target.src = "https://images.unsplash.com/photo-1620778182530-703effa65a06?w=600&auto=format&fit=crop&q=60";
             }}
           />
         </div>
